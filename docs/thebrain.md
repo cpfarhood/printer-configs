@@ -88,7 +88,11 @@ Z positive moves the bed down, away from the nozzle.
 - **Power on:** Moonraker turns the relay on and starts Klipper. Queueing a job also powers it on. Since 2026-11-22 (`startupinit: False`) nothing heats or moves at startup, and the LEDs stay plain white until the first print.
 - **Print start** (`PRINT_START`): heat bed and nozzle (nozzle 10°C short), home, attach probe, level the gantry, heat nozzle fully, `CALIBRATE_Z`, adaptive bed mesh, dock probe, prime 11 mm. Takes about 3.5 minutes from cold at 190/50°C.
 - **Print end** (`PRINT_END`): heaters off, bed lowered to 95% of Z travel, park, motors off, power-off check scheduled.
-- **Idle:** after 10 idle minutes the motors and heaters turn off, the part fan runs, and the relay cuts once nozzle and bed are both under 50°C.
+- **Pause:** Mainsail's `PAUSE` retracts 1 mm, lifts 15 mm and parks at X390 Y385. `_PAUSE_HOOK` switches the LEDs to the pause effect.
+- **Paused and idle:** after 10 idle minutes only the hotend turns off. The bed stays hot and the motors stay on. If the print is still paused 4 hours after that, it is cancelled and the printer shuts down.
+- **Resume:** Mainsail's `RESUME` reheats the hotend to its previous target if it was turned off, un-retracts, and continues.
+- **Cancel:** Mainsail's `CANCEL_PRINT` retracts, parks 15 mm above the print, and turns the heaters and part fan off. `_CANCEL_HOOK` sets the cancel LED effect and schedules the power-off check, so the relay cuts once the nozzle is under 50°C. The bed is left where it was, not lowered.
+- **Idle:** after 10 idle minutes the motors and heaters turn off, the part fan runs, and the relay cuts once nozzle and bed are both under 50°C. The idle timer only starts after the first motion or heating command, so a printer that is powered on and never used stays on.
 - **Motors off:** the bed sags when the Z motors release. The gantry tilt measured 1.3–1.6 mm out after each power-off, which is why every print starts with `Z_TILT_ADJUST`.
 
 ## Measurements, 2026-11-22
@@ -105,6 +109,7 @@ Bed at 50°C and nozzle at 184°C unless noted.
 | Probe repeatability | 20 samples: spread 0.015 mm, σ 0.003 mm. The first sample after a travel move reads about 0.013 mm low. |
 | Gantry tilt | Converges to under 0.01 mm in 4–5 passes, each pass removing about 85% of the error |
 | Z calibration, 3 runs | Offsets 0.210, 0.221, 0.234 mm. Nozzle touch varied 0.018 mm, switch 0.007 mm, bed probe 0.009 mm. |
+| Z calibration, later the same day | 0.271 mm, after a power cycle and with the nozzle at 190°C. Four runs in one day span 0.06 mm. |
 | Bed screws | Corners within 0.13 mm of each other |
 | Stepper drivers | No over-temperature, short or open-load flags |
 | CAN bus | 1.46 million packets, zero errors |
@@ -139,6 +144,25 @@ The plate is a dome: centre high, corners 0.4–0.5 mm low. A mesh at 50°C over
 
 The saved shaper values still fit. The lower belt resonates lower than the upper, which points to it being looser and matches the double peak on X.
 
+## Tests of the 2026-11-22 config changes
+
+Run on the machine the same day, after the changes were pulled. The pause and cancel tests used a no-extrusion air print at 190/50°C.
+
+| Test | Result |
+|---|---|
+| Klipper start with the new config | Ready in about 6 s. No errors, no heating, no motion. |
+| Full mesh over 0,20 → 335,315 | All 49 points probed, no misses |
+| `PRINT_START` | Completed in about 3.5 minutes, adaptive mesh around the object |
+| Pause | Parked at X390 Y385, 15 mm up. Pause LED effect on. |
+| Paused past the idle timeout | At 10 minutes the hotend target went to 0. Bed stayed at 50°C, motors stayed on, relay stayed on, print stayed paused. |
+| Resume | Reheated from 145°C to 190°C on its own in about 75 s, then continued printing. Active LED effect back on. |
+| Cancel | Both heater targets to 0 at once, toolhead parked, cancel LED effect on |
+| Power-off after cancel | Relay cut 6 minutes later, when the nozzle fell below 50°C |
+
+Not tested: the 4-hour give-up on a paused print, and anything on the other three printers.
+
+The test file `audit_airprint.gcode` is still in the host's gcode folder and can be reused. It shows in the print history as one cancelled job.
+
 ## Incidents
 
 ### 2026-11-22: bed driven into the toolhead by a missed probe
@@ -170,6 +194,8 @@ Ordered roughly by value. None of these are done.
 
 **Macros**
 
+- With `startupinit: False`, a printer that is powered on and left unused never powers itself off, and the LEDs stay white. A short thebrain-only startup block that sets the idle LED effect and runs one dwell (`G4 P1`) to start the idle timer should restore both without any motion. Untested.
+- Cancel leaves the bed 15 mm below the nozzle, and the Z motors release when the relay cuts. `PRINT_END` lowers the bed to 95% of travel first; cancel could do the same.
 - Remove the dead `COMPUTE_MESH_PARAMETERS` call from `PRINT_START` and `DOCK_PROBE` from `[z_calibration] end_gcode`. Both only print "Unknown command". The probe docks itself after `CALIBRATE_Z`.
 - `TEST_SPEED` restores limits from `max_accel_to_decel`, which this Klipper no longer has. Not run, but it will most likely error at the end and leave the test limits in place. `HEAT_SOAK` calls it.
 - `LOAD_FILAMENT` extrudes 75 mm before waiting for temperature, so it fails below 175°C.
