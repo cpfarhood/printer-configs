@@ -268,9 +268,10 @@ To roll back:
 | `PRINT_START`, pause, resume, cancel (air print) | All work. Bed lowers on cancel. | Same |
 | Baseline cube | 1554 s of printing, 1937 mm of filament | 1546 s, 1937 mm |
 | Timing or communication errors during the cube | None | None |
+| Power-off after a finished print | Relay cut about 5.5 minutes after the cube ended, once the bed fell below 50°C | Same behaviour |
 | Neopixel update errors | Still present: about 8,000 in 46 minutes | 11,278 in 38 minutes |
 
-Not yet done on Kalico: a full-bed mesh (see the front-left corner item under "Open items"), the resonance sweeps, and the idle power-off paths.
+Not yet done on Kalico: a full-bed mesh (see the front-left corner item under "Open items"), the resonance sweeps, the power-off of an unused printer, and the paused-print idle path.
 
 ### Things to know from the day
 
