@@ -95,6 +95,25 @@ Z positive moves the bed down, away from the nozzle.
 - **Idle:** after 10 idle minutes the motors and heaters turn off, the part fan runs, and the relay cuts once nozzle and bed are both under 50°C. A printer that is powered on and never used powers itself off after about 10.5 minutes.
 - **Motors off:** the bed sags when the Z motors release. The gantry tilt measured 1.3–1.6 mm out after each power-off, which is why every print starts with `Z_TILT_ADJUST`.
 
+## Slicer
+
+SuperSlicer 2.7.61, printer profile "Mercury One Plus", print profile "Normal @Mercury One Plus", filament "PLA (Overture) @Mercury One Plus". Read from a config bundle on 2026-11-22.
+
+| Setting | Value | Note |
+|---|---|---|
+| Bed shape | 370 × 370, origin at the front left | The probe misses the plate at X377, so the usable right edge is unconfirmed |
+| Max print height | 350 | |
+| Start code | `SET_PRINT_STATS_INFO`, then `print_start EXTRUDER= BED= CHAMBER= SIZE=` | `SIZE` and `CHAMBER` are not used by `PRINT_START` |
+| End code | `print_end` | |
+| Heat waits | The slicer adds `M109` and `M190` after `print_start` | Redundant; `PRINT_START` has already heated |
+| Layer height / nozzle | 0.2 mm / 0.6 mm | |
+| Speeds | Default 120 mm/s, perimeters 60%, external 50%, first layer 30%, travel 160 | |
+| Acceleration | Profile asks for 3000; output is 1500, and 750 on the first layer | Capped by the printer profile's 1500 "extruding" machine limit |
+| Retraction | 1.5 mm at 60 mm/s, 0.3 mm Z lift | Slicer retraction, not `G10`/`G11` |
+| Pressure advance | 0.02 in the filament profile, but switched off | Nothing is sent, so the printer runs at 0 |
+| Filament | 190°C, bed 65°C, flow 0.96, fan 100% from layer 2 | |
+| Object labels | OctoPrint-style comments | Moonraker turns these into `EXCLUDE_OBJECT_DEFINE` on upload. A file that reaches the host any other way gets a full-bed mesh instead of an adaptive one. |
+
 ## Measurements, 2026-11-22
 
 Bed at 50°C and nozzle at 184°C unless noted.
@@ -109,13 +128,14 @@ Bed at 50°C and nozzle at 184°C unless noted.
 | Probe repeatability | 20 samples: spread 0.015 mm, σ 0.003 mm. The first sample after a travel move reads about 0.013 mm low. |
 | Gantry tilt | Converges to under 0.01 mm in 4–5 passes, each pass removing about 85% of the error |
 | Z calibration, 3 runs | Offsets 0.210, 0.221, 0.234 mm. Nozzle touch varied 0.018 mm, switch 0.007 mm, bed probe 0.009 mm. |
-| Z calibration, later the same day | 0.271 and 0.279 mm, each at the start of a print after a power cycle, nozzle at 190°C. Five runs in one day span 0.07 mm. |
+| Z calibration, later the same day | 0.271, 0.279, 0.277 and 0.230 mm, each at the start of a print, nozzle at 190°C. Seven runs in one day span 0.07 mm. |
 | Bed screws | Corners within 0.13 mm of each other |
 | Stepper drivers | No over-temperature, short or open-load flags |
 | CAN bus | 1.46 million packets, zero errors |
 | Temperatures after 40 minutes of testing | Mainboard MCU 45°C, toolhead board 45°C |
 | Pressure advance | 0. Not set in config or slicer start code. |
 | Neopixel | 11,278 "Neopixel update did not succeed" errors in 38 minutes. Cause not found. |
+| Baseline print | 20 mm Voron cube, "Normal @Mercury One Plus", Overture PLA at 190/65°C: 1546 s of printing, 1937 mm of filament, 3×3 adaptive mesh with a 0.068 mm range. Owner's verdict: a very good print, with some surface noise left to tune out. |
 
 ### Bed shape
 
@@ -182,6 +202,54 @@ Normal prints had never hit this because the adaptive mesh only probes around th
 
 Fixed the same day: `position_min` -15 → -2 and `mesh_max` 377,350 → 335,315.
 
+## Kalico migration
+
+Status on 2026-11-22: prepared, not started. The live install is still Danger Klipper.
+
+### What the dry run showed
+
+Kalico `v2026.11.00` was set up in a separate clone and Python environment on the host, beside the live install.
+
+| Check | Result |
+|---|---|
+| Python packages on the host's Python 3.9 | Install in about 30 s from prebuilt wheels. Kalico needs 3.9 or newer, so this host is at the minimum. |
+| Firmware for all three MCUs, from the saved build configs | Builds with the existing toolchain. Each image uses under a third of flash. |
+| This printer's `printer.cfg`, loaded offline | Clean. No errors or deprecation warnings. |
+| Macros run offline: pause, resume, cancel, filament load and unload, `TEST_SPEED`, `HEAT_SOAK`, `WIPE_LINE`, LED and general commands | All complete |
+| The baseline cube gcode, simulated start to finish | Completes. 1608 s simulated against 1601 s on the installed version. |
+
+Probing cannot be checked offline: the simulated probe never triggers. Gantry tilt, Z calibration and meshing have to be proven on the machine, under the watchdog described below.
+
+The offline harness is Klipper's batch mode: `klippy.py printer.cfg -i test.gcode -o out -d mcu.dict -d rpi=rpi.dict -d head0=head0.dict`, run against a copy of the config. Two things in the copy had to change for it to work: the toolhead MCU is given a `serial:` instead of `canbus_uuid:` (Kalico's CAN statistics module crashes on the simulated reply), and the probing flags in `INITIALIZATION` are set to 0. The same harness against the installed Danger Klipper hangs on some sequences after `G28`, so it is not a reliable A/B baseline. The live printer is.
+
+### Behaviour that changes
+
+- Homing no longer backs off after the final endstop touch. The axis stays on the switch.
+- `SET_VELOCITY_LIMIT` no longer accepts `ACCEL_TO_DECEL`. `TEST_SPEED` now uses `MINIMUM_CRUISE_RATIO`, which both versions accept.
+- `probe`, `homing`, `dockable_probe` and `z_calibration` were all reworked. No option this printer sets was removed, but probing is the main functional risk.
+- Resonance tests shake harder, so the shaper should be re-run afterwards.
+- `MIGRATE_TO_KALICO` only repoints the git remote and checks out `main`. Python packages, firmware and plugins are separate steps.
+
+### Backup and rollback
+
+A full copy of the live install was taken on 2026-11-22 into `~/backups/pre-kalico-2026-11-22/` on the host: the `klipper` tree, `klippy-env`, the config folder, the service files, the build configs, and firmware images built from the installed source for the mainboard and toolhead board. It sits on the same drive as the install, so it protects against a bad migration, not a dead drive.
+
+To roll back:
+
+1. Stop the `klipper` service.
+2. Replace `~/klipper` and `~/klippy-env` with the copies from the backup.
+3. Flash the mainboard from the restored tree: `./scripts/flash-sdcard.sh -f <backup>/firmware/danger-3fcbc0b4-btt-skr-mini-e3-v3.bin -b 500000 /dev/ttyAMA0 btt-skr-mini-e3-v3`.
+4. Flash the toolhead board: `python3 ~/CanBoot/scripts/flash_can.py -i can0 -u <uuid from printer-thebrain.cfg> -f <backup>/firmware/danger-3fcbc0b4-mellow-fly-sht42.bin`.
+5. Rebuild and flash the host MCU: `make clean KCONFIG_CONFIG=config.rpi && make flash KCONFIG_CONFIG=config.rpi`.
+6. Start the `klipper` service.
+
+### Plan
+
+1. Move the checkout to the Kalico monthly tag, update the Python environment, reflash all three MCUs, and re-link `led_effect`.
+2. Point Moonraker's Klipper updater at the stable channel.
+3. Re-run the checks in "Measurements" and "Tests of the 2026-11-22 config changes", probing first and under the watchdog.
+4. Print the baseline cube again and compare.
+
 ## Open items
 
 Ordered roughly by value. None of these are done.
@@ -204,7 +272,6 @@ Ordered roughly by value. None of these are done.
 **Macros**
 
 - Remove the dead `COMPUTE_MESH_PARAMETERS` call from `PRINT_START` and `DOCK_PROBE` from `[z_calibration] end_gcode`. Both only print "Unknown command". The probe docks itself after `CALIBRATE_Z`.
-- `TEST_SPEED` restores limits from `max_accel_to_decel`, which this Klipper no longer has. Not run, but it will most likely error at the end and leave the test limits in place. `HEAT_SOAK` calls it.
 - `LOAD_FILAMENT` extrudes 75 mm before waiting for temperature, so it fails below 175°C.
 - The frame file rewrites all saved variables at every boot, and `_Printer_Variables` duplicates most of them. One mechanism should go.
 - `variable_use_custom_pos.` has a stray period, and `max_extrude_only_distance` is set twice in the toolhead file.
