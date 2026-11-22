@@ -38,5 +38,5 @@ These were made after an incident on thebrain and have **not been tested on pink
 ## To check when someone is at the machine
 
 - Where the probe pin runs off the plate on the right and back edges, before widening the mesh.
-- Which Klipper fork and version the host runs. Option and command names depend on it.
+- Which Klipper fork and version the host runs. Option and command names depend on it. thebrain moved to Kalico on 2026-11-22; pinky has not been touched. The shared `[fan]` section still uses `off_below` because mainline Klipper has no `min_power`.
 - Belt resonance on each diagonal, gantry tilt convergence, and Z calibration repeatability, as measured on thebrain.

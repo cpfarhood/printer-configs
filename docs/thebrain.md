@@ -1,6 +1,6 @@
 # thebrain
 
-An Ender 5 Plus converted to a ZeroG Mercury One (CoreXY), then customised further. Last inspected live on 2026-11-22.
+An Ender 5 Plus converted to a ZeroG Mercury One (CoreXY), then customised further. Last inspected live on 2026-11-22, the day it moved from Danger Klipper to Kalico.
 
 ## Hardware
 
@@ -34,9 +34,9 @@ Confirmed 2026-11-22 by camera: a move along +X+Y turns only `stepper_x`, and th
 
 ## Software
 
-- Klipper fork: Danger Klipper (since renamed Kalico) at `v0.12.0-526`, December 2024. The checkout still points at the old repository name, so the update manager reports "up to date" and never offers updates. MCU firmware is `v0.12.0-514` on all three MCUs.
-- `dockable_probe` and `z_calibration` are bundled with that fork. `led_effect` is a separate plugin.
-- Option and command names must be checked against Danger Klipper / Kalico, not mainline Klipper docs.
+- Klipper fork: Kalico `v2026.11.00` since 2026-11-22, on the host and on all three MCUs. The checkout sits on the monthly release tag and Moonraker's Klipper updater is on the `stable` channel, so it follows monthly tags, not every commit. Before that it ran Danger Klipper `v0.12.0-526` (December 2024) on a repository name that no longer received updates.
+- `dockable_probe` and `z_calibration` are bundled with Kalico. `led_effect` is a separate plugin, linked into `klippy/plugins/` (Kalico refuses to start if the same module is in both `extras` and `plugins`).
+- Option and command names must be checked against Kalico's docs, not mainline Klipper's.
 - Resonance tools need the system package `libopenblas0`. It was missing from November 2024 until 2026-11-22, so `TEST_RESONANCES` and `SHAPER_CALIBRATE` failed with a numpy import error during that time. `calibrate_shaper.py` still fails because matplotlib is not installed in Klipper's Python environment.
 
 ## Config
@@ -194,6 +194,10 @@ The test file `audit_airprint.gcode` is still in the host's gcode folder and can
 
 ## Incidents
 
+### 2026-11-22: false emergency stop during testing
+
+A test watchdog read Kalico's momentary all-zero live position as the bed rising and sent an emergency stop. Nothing was moving toward the nozzle. Klipper shut down at the start of a probe command; a firmware restart and re-home recovered it. The watchdog rule was corrected the same evening.
+
 ### 2026-11-22: bed driven into the toolhead by a missed probe
 
 A full-bed `BED_MESH_CALIBRATE` was run as a flatness check. The seventh point put the probe at X377 Y20, off the plate. With no trigger and `position_min` at -15, the bed kept rising to Z -15. It knocked the probe off its magnets and the silicone sock off the hotend. Both were refitted by hand and later checks were normal.
@@ -204,7 +208,7 @@ Fixed the same day: `position_min` -15 → -2 and `mesh_max` 377,350 → 335,315
 
 ## Kalico migration
 
-Status on 2026-11-22: prepared, not started. The live install is still Danger Klipper.
+Done on 2026-11-22. The sections below record the preparation, what was done, and what the checks afterwards showed.
 
 ### What the dry run showed
 
@@ -214,7 +218,7 @@ Kalico `v2026.11.00` was set up in a separate clone and Python environment on th
 |---|---|
 | Python packages on the host's Python 3.9 | Install in about 30 s from prebuilt wheels. Kalico needs 3.9 or newer, so this host is at the minimum. |
 | Firmware for all three MCUs, from the saved build configs | Builds with the existing toolchain. Each image uses under a third of flash. |
-| This printer's `printer.cfg`, loaded offline | Clean. No errors or deprecation warnings. |
+| This printer's `printer.cfg`, loaded offline | Loads without errors. The offline log showed no warnings, but the live printer reports one: `off_below` in `[fan]` is deprecated in favour of `min_power`. |
 | Macros run offline: pause, resume, cancel, filament load and unload, `TEST_SPEED`, `HEAT_SOAK`, `WIPE_LINE`, LED and general commands | All complete |
 | The baseline cube gcode, simulated start to finish | Completes. 1608 s simulated against 1601 s on the installed version. |
 
@@ -243,20 +247,48 @@ To roll back:
 5. Rebuild and flash the host MCU: `make clean KCONFIG_CONFIG=config.rpi && make flash KCONFIG_CONFIG=config.rpi`.
 6. Start the `klipper` service.
 
-### Plan
+### What was done
 
-1. Move the checkout to the Kalico monthly tag, update the Python environment, reflash all three MCUs, and re-link `led_effect`.
-2. Point Moonraker's Klipper updater at the stable channel.
-3. Re-run the checks in "Measurements" and "Tests of the 2026-11-22 config changes", probing first and under the watchdog.
-4. Print the baseline cube again and compare.
+1. `~/klipper` repointed at the Kalico repository and checked out at tag `v2026.11.00`. The old `master` branch is still in the checkout.
+2. Python packages updated from Kalico's requirements file.
+3. `led_effect` moved from `klippy/extras/` to `klippy/plugins/`.
+4. Firmware built from the saved build configs and flashed: host MCU with `scripts/flash-linux.sh`, toolhead board over CAN with `flash_can.py`, mainboard with `scripts/flash-sdcard.sh`. All three verified first time.
+5. `[update_manager klipper]` with `channel: stable` added to the host's `moonraker.conf`.
+
+### Checks afterwards
+
+| Check | Kalico | Danger Klipper, same day |
+|---|---|---|
+| Start | Ready, all three MCUs on `v2026.11.00` | |
+| Probe repeatability, bed centre, 20 samples | Spread 0.016 mm, σ 0.003 mm | 0.015 mm, σ 0.003 mm |
+| Gantry tilt | Converges in 3–4 passes | 4–5 passes |
+| Z calibration, three runs, cold nozzle | 0.202, 0.204, 0.194 mm. Nozzle touch varied 0.006 mm. | Hot nozzle: 0.210, 0.221, 0.234 mm. Nozzle touch varied 0.018 mm. |
+| Z homing, nozzle on the endstop after each of 12 homes | Within 0.05 mm | Six homes within 0.019 mm, measured a different way |
+| X/Y homing | About 0.01 mm | About 0.01 mm |
+| `PRINT_START`, pause, resume, cancel (air print) | All work. Bed lowers on cancel. | Same |
+| Baseline cube | 1554 s of printing, 1937 mm of filament | 1546 s, 1937 mm |
+| Timing or communication errors during the cube | None | None |
+| Neopixel update errors | Still present: about 8,000 in 46 minutes | 11,278 in 38 minutes |
+
+Not yet done on Kalico: a full-bed mesh (see the front-left corner item under "Open items"), the resonance sweeps, and the idle power-off paths.
+
+### Things to know from the day
+
+- **Kalico's live position can read zero.** `motion_report.live_position` returns `0, 0, 0` for an instant between moves. A watchdog that acted on a single reading sent a false emergency stop. Ignore all-zero readings and require two low readings in a row.
+- **`GET_POSITION` is not a homing-repeatability measure.** On Kalico the `stepper:` and `mcu:` Z values carry an offset that changes between homes while the toolhead position stays correct. To check Z homing, run `PROBE_Z_ACCURACY` at the endstop after each home and compare where the nozzle touches.
+- **The offline harness's fake probe never triggers**, and Kalico's CAN statistics module crashes on its simulated reply. Both are harness artifacts, not printer faults.
 
 ## Open items
 
 Ordered roughly by value. None of these are done.
 
+**Probing**
+
+- Probing near the front-left corner became unstable on the evening of 2026-11-22: five-sample spreads of 0.13–0.20 mm at probe positions (15,25), (0,40) and (10,20), and "Probe triggered prior to movement" at (5,20) and (0,25), while the bed centre stayed at 0.006 mm. A full mesh over the same points had passed that afternoon on Danger Klipper, before the bed plate was handled to remove a print. A plate not sitting flat at that corner is the leading suspect; a Kalico difference has not been ruled out. Until this is settled a full-bed mesh will fail at its first point. Adaptive meshes around a part in the middle of the bed are unaffected.
+
 **First-layer consistency**
 
-- `PRINT_START` heats the nozzle to full print temperature before `CALIBRATE_Z`, and the nozzle touch is the noisiest part of that measurement. Probe at about 150°C, then heat.
+- `PRINT_START` heats the nozzle to full print temperature before `CALIBRATE_Z`, and the nozzle touch is the noisiest part of that measurement. With a cold nozzle the touch varied 0.006 mm over three runs, against 0.018 mm hot. Probe at about 150°C, then heat.
 - `switch_offset` was hand-tuned about a dozen times between October 2024 and January 2026, in a band from 0.485 to 0.585. Back-to-back calibrations differ by about 0.024 mm, so steps of 0.01–0.02 are inside the noise.
 - Z homes at 20 mm/s onto the nozzle pin. Slower would likely tighten the 0.019 mm spread.
 - Mesh fade is off, so the 0.58 mm dome is carried through the full height of every print. `fade_start: 1`, `fade_end: 10` would stop that.
@@ -278,7 +310,9 @@ Ordered roughly by value. None of these are done.
 
 **Host**
 
-- Move to Kalico and reflash the three MCUs. Update Moonraker, `led_effect` and crowsnest.
+- Update Moonraker, `led_effect` and crowsnest. Klipper itself is now current.
+- `off_below` in the shared `[fan]` section is deprecated on Kalico; `min_power` replaces it with the same meaning. It is left alone because pinky loads the same file and its Klipper version is unknown: mainline Klipper does not have `min_power`.
+- Re-run the resonance sweeps on Kalico, which excites harder than the old version, and compare with the saved shaper.
 - The host's `printer.cfg` and `moonraker.conf` are not in version control.
 - The Pi runs at about 65°C with the printer off and 47°C with it on, so it depends on a printer-powered fan.
 - Unused files on the host: old `klicky-*.cfg` files and dated `printer-*.cfg` backups.
@@ -290,7 +324,7 @@ Ordered roughly by value. None of these are done.
 
 ## Working on this printer safely
 
-- Any probing outside the proven area should run under a watchdog that polls `motion_report.live_position` and sends Moonraker's emergency stop if Z drops below about 5 mm during a probe move. Probes normally trigger near Z 8.
+- Any probing outside the proven area should run under a watchdog that polls `motion_report.live_position` and sends Moonraker's emergency stop if Z drops below about 5 mm during a probe move. Probes normally trigger near Z 8. The watchdog must ignore all-zero readings and wait for two low readings in a row; see "Things to know from the day".
 - Check that the bed is clear before homing. Raise the bed to about Z45 and the camera can see the plate.
 - A no-extrusion "air print" is a cheap way to exercise `PRINT_START`, pause, resume and cancel: define one exclude-object near the bed centre, call `print_start`, then loop a square at Z20.
 
