@@ -270,8 +270,14 @@ To roll back:
 | Timing or communication errors during the cube | None | None |
 | Power-off after a finished print | Relay cut about 5.5 minutes after the cube ended, once the bed fell below 50°C | Same behaviour |
 | Neopixel update errors | Still present: about 8,000 in 46 minutes | 11,278 in 38 minutes |
+| Unused printer powers itself off | Relay cut 632 s after power-on with nothing touched | About 630 s |
+| Paused past the idle timeout | Hotend target to 0 at 10 minutes; bed held at 50°C, motors and relay on. Resume reheated from 157°C to 190°C and carried on. | Same |
+| Full-bed mesh, five samples per point | All 49 points, 0.511 mm range, four tolerance retries | 0.579 mm range with two samples per point |
+| Resonance, X | mzv 58.6 Hz; peaks at 62.1 and 52.8 Hz | mzv 58.2 Hz; peaks at 63.4 and 52.5 Hz |
+| Resonance, Y | mzv 43.2 Hz; peak at 41.9 Hz | mzv 42.8 Hz; peak at 41.7 Hz |
+| Belts alone | Lower about 54 Hz, upper about 64 Hz | Lower 54.0 Hz, upper 63.3 Hz |
 
-Not yet done on Kalico: a full-bed mesh (see the front-left corner item under "Open items"), the resonance sweeps, the power-off of an unused printer, and the paused-print idle path.
+Every check from the Danger Klipper baseline has now been repeated on Kalico. The saved input shaper (X mzv 59.2 Hz, Y mzv 43.2 Hz) still fits and was left unchanged. Still untested on either version: the 4-hour give-up on a paused print, and a queued job powering the printer on.
 
 ### Things to know from the day
 
@@ -285,7 +291,8 @@ Ordered roughly by value. None of these are done.
 
 **Probing**
 
-- Probing near the front-left corner became unstable on the evening of 2026-11-22: five-sample spreads of 0.13–0.20 mm at probe positions (15,25), (0,40) and (10,20), and "Probe triggered prior to movement" at (5,20) and (0,25), while the bed centre stayed at 0.006 mm. A full mesh over the same points had passed that afternoon on Danger Klipper, before the bed plate was handled to remove a print. A plate not sitting flat at that corner is the leading suspect; a Kalico difference has not been ruled out. Until this is settled a full-bed mesh will fail at its first point. Adaptive meshes around a part in the middle of the bed are unaffected.
+- Probing along the front edge reads low on the first touch and creeps up over the next few. Five samples per point, bed cold, later on 2026-11-22: front-left corner (0,20) spread 0.076 mm with the first sample 0.068 mm low; front-right corner 0.030 mm; mid-front 0.022 mm; mid-left 0.012 mm; centre and all four back positions 0.002–0.006 mm. It looks like the bed giving slightly under the probe at the front. The config rejects a point whose samples differ by more than 0.033 mm and retries, so a full-bed mesh completes but needs retries at the front-left. Adaptive meshes around a part in the middle of the bed are unaffected.
+- Earlier the same evening the front-left corner was far worse: spreads of 0.13–0.27 mm and "Probe triggered prior to movement" at (5,20) and (0,25), enough to abort a full mesh at its first point. That cleared after the second test cube was taken off the plate. A plate not sitting flat at that corner after the first cube was removed is the likely cause, but that was not confirmed, and the same mesh had passed that afternoon on Danger Klipper. If full meshes start failing at the front-left again, check the plate seating first.
 
 **First-layer consistency**
 
@@ -313,7 +320,6 @@ Ordered roughly by value. None of these are done.
 
 - Update Moonraker, `led_effect` and crowsnest. Klipper itself is now current.
 - `off_below` in the shared `[fan]` section is deprecated on Kalico; `min_power` replaces it with the same meaning. It is left alone because pinky loads the same file and its Klipper version is unknown: mainline Klipper does not have `min_power`.
-- Re-run the resonance sweeps on Kalico, which excites harder than the old version, and compare with the saved shaper.
 - The host's `printer.cfg` and `moonraker.conf` are not in version control.
 - The Pi runs at about 65°C with the printer off and 47°C with it on, so it depends on a printer-powered fan.
 - Unused files on the host: old `klicky-*.cfg` files and dated `printer-*.cfg` backups.
