@@ -2,7 +2,7 @@
 
 ZeroG Mercury One conversion of an Ender 5 Plus. Sibling of [thebrain](thebrain.md) and built from the same shared files.
 
-**Status, 2026-11-23:** powered on for the first time since March 2025. It homes, but **the probe fails after one or two touches**, the same fault that ended its last session. It cannot start a print until the probe is fixed. See "First power-on" below. Nothing else about how it behaves has been checked; treat the thebrain notes as the best guide.
+**Status, 2026-11-23:** powered on for the first time since March 2025. The probe that ended its last session was replaced the same day and the new one passes its first checks. It has not printed yet. Nothing else about how it behaves has been checked; treat the thebrain notes as the best guide.
 
 ## Host and software, as found 2026-11-23
 
@@ -94,6 +94,21 @@ What that points to, not yet confirmed by looking at the part:
 - The two readings are 0.2 mm apart, against 0.002–0.006 mm on thebrain's probe. The probe moved on its mount between touches.
 - The circuit then stayed open. On this probe the magnets are also the electrical contacts, so either the probe unseated enough to lose contact, or the switch stuck pressed.
 - Things to look at: magnets loose or dirty, on the probe and on the toolhead mount; the switch plunger sticking; a broken wire at the toolhead.
+
+### Probe replaced, same day
+
+The owner swapped the probe. Two attempts in the console history around the swap failed (one `Probe triggered prior to movement` after a single reading, one `Probe attach failed!`); whether those were before or after the new probe went in is not recorded. Everything after that passed:
+
+| Check | Result |
+|---|---|
+| `Z_TILT_ADJUST` (run by the owner) | Converged in four passes: range 0.874 → 0.135 → 0.021 → 0.009 mm. The bed had drifted 0.87 mm out of level across the two Z motors while idle. |
+| Pick-up and docking | 4 of 4 clean, checked by the probe state and the camera |
+| Repeatability at bed centre, 3 × 10 samples | Range 0.018–0.019 mm, standard deviation 0.005–0.007 mm. Medians 7.234, 7.230, 7.219. |
+| `CALIBRATE_Z`, cold | probe 7.256, switch 12.481, nozzle 5.358 → offset -0.336 mm |
+
+- The repeatability is good enough for the configured 0.033 mm sample tolerance, but about three times looser than thebrain's probe at its bed centre.
+- In February 2025, hot and with the old probe, `CALIBRATE_Z` gave offsets of -0.20 to -0.29 mm (probe 7.33–7.41, switch 12.51–12.55, nozzle 5.36–5.42). The new figure is about 0.1 mm lower. Some of that is a cold bed and nozzle; some may be the new switch. `switch_offset` (0.470) was tuned for the old probe, so **check the first layer before trusting it**.
+- For a watchdog during `CALIBRATE_Z`, the touches happen at about Z 5.4 over the nozzle pin, Z 12.5 at the switch position and Z 7.3 on the bed.
 
 The camera snapshot address on this host is `/webcam/snapshot`.
 
