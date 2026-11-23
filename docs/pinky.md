@@ -2,7 +2,7 @@
 
 ZeroG Mercury One conversion of an Ender 5 Plus. Sibling of [thebrain](thebrain.md) and built from the same shared files.
 
-**Status, 2026-11-23:** the host was read over the network with the printer's power relay off. Nothing has been powered, heated or moved yet, so everything about how the machine behaves is still unverified. Treat the thebrain notes as the best guide until it has been checked.
+**Status, 2026-11-23:** powered on for the first time since March 2025. It homes, but **the probe fails after one or two touches**, the same fault that ended its last session. It cannot start a print until the probe is fixed. See "First power-on" below. Nothing else about how it behaves has been checked; treat the thebrain notes as the best guide.
 
 ## Host and software, as found 2026-11-23
 
@@ -73,7 +73,31 @@ The Y shaper value looks wrong. thebrain, the same frame, resonates at about 42 
 - The final session's log ends with `Probe triggered prior to movement` twice during the probing at the start of a print, right after a normal reading at 35,165. On a Klicky-style probe that usually means the probe was not on the toolhead or its circuit was open. The printer has not run since, so **assume the probe or its dock needs attention**.
 - The same logs show the neopixel update errors and the dead `COMPUTE_MESH_PARAMETERS` and `DOCK_PROBE` calls seen on thebrain.
 
-## Before the first power-on
+## First power-on, 2026-11-23
+
+Done with the repo pulled to `master` and the `startupinit: False` change checked out, bed confirmed clear by the owner.
+
+| Check | Result |
+|---|---|
+| Klipper start | Ready 7 s after the relay switched on. Nothing heated or moved. Only warning: `off_below` is deprecated. |
+| Firmware | Main board and toolhead board both on `v0.12.0-526-g3fcbc0b4` |
+| Temperatures | Nozzle and bed both read 19–20°C, matching the frame sensor |
+| Endstops | X, Y and Z open at rest. X and Y use physical switches. |
+| Homing | `G28` completed normally and parked at 388,85 Z20 |
+| Probe pick-up | `ATTACH_PROBE` reported the probe attached |
+| Probing at bed centre | Two readings, 7.511 and 7.309 mm, then `Probe triggered prior to movement` |
+
+After the error the probe pin read triggered (open circuit) continuously with the bed 40 mm away, and Klipper reported the probe as docked although the camera shows the dock empty. The 2025-03-07 log has the same pattern: one normal reading, then the same error twice.
+
+What that points to, not yet confirmed by looking at the part:
+
+- The two readings are 0.2 mm apart, against 0.002–0.006 mm on thebrain's probe. The probe moved on its mount between touches.
+- The circuit then stayed open. On this probe the magnets are also the electrical contacts, so either the probe unseated enough to lose contact, or the switch stuck pressed.
+- Things to look at: magnets loose or dirty, on the probe and on the toolhead mount; the switch plunger sticking; a broken wire at the toolhead.
+
+The camera snapshot address on this host is `/webcam/snapshot`.
+
+## Before powering on
 
 - `startupinit: True`: as soon as the relay switches on, Klipper starts, heats to 184/50°C, homes, and sweeps the toolhead around the bed starting at about 19 mm. Anything on the bed taller than that gets hit. Clear the bed first, or turn `startupinit` off as was done on thebrain.
 - Check by eye that the probe is sitting in its dock.
