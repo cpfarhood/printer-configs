@@ -40,7 +40,18 @@ After a pull it gets the fixed versions of all of these. They were proven on the
 - `mainsail.cfg`
 - `macros-common.cfg`, `macro-test_speed.cfg`, `macro-heat_soak.cfg`, `macro-wipe_line.cfg`, `macros-lazy_homing.cfg`, `macros-printer_power.cfg`
 
-The stepper file is the main hardware difference from thebrain: 64 microsteps and different motors (its comments name Fabreek Honey Badger 42HS48-25044A and LDO 42STH48-2504AC). Which motors are really fitted is unverified.
+The stepper file is the main hardware difference from thebrain:
+
+| | pinky | thebrain |
+|---|---|---|
+| X/Y/Z motors | 1.8° (200 steps per turn), 2.5 A rated. The file's comments name Fabreek Honey Badger 42HS48-25044A on X/Y and LDO 42STH48-2504AC on Z. | 0.9° (400 steps per turn), 2.0 A rated |
+| Microsteps | 64 | 32 |
+| Resolution | 320 microsteps per mm | 320 microsteps per mm |
+| Run current | 1.35 A on all four, about half the motors' rating (the TMC2209 limit) | 1.35 A on X/Y, 1.25 A on Z |
+
+- The owner confirmed the 200-step motors on 2026-11-23. Because the motors differ, thebrain's resonance figures are not a baseline for pinky; measure pinky on its own.
+- The file has a second `[tmc2209 stepper_y]` header that sets `driver_SGTHRS: 110`. Y homes on a physical switch, so it does nothing.
+- The extruder is the same on both: 0.9°, 32 microsteps.
 
 ### Values that live only on the host
 
@@ -53,7 +64,7 @@ The stepper file is the main hardware difference from thebrain: 64 microsteps an
 | `[dockable_probe] z_offset` | 7.260 |
 | Saved `default` bed mesh | 7×7 over 20…330, range about 0.30 mm, centre high |
 
-The Y shaper value looks wrong. thebrain, the same frame, resonates at about 42 Hz in Y. A fit of 104 Hz is what a sweep with no clear peak produces, which is also what thebrain's Y sweep looked like on 2026-11-23 when its gantry stopped following small moves. Re-measure before trusting it.
+The Y shaper value is worth re-measuring. thebrain's Y resonates at about 42 Hz, but its motors are different, so that is only a rough guide. A fit as high as 104 Hz is also what a sweep with no clear peak produces, which is what thebrain's Y sweep looked like on 2026-11-23 when its gantry stopped following small moves.
 
 ### Differences from thebrain in the machine file
 
