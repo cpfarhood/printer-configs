@@ -2,7 +2,7 @@
 
 ZeroG Mercury One conversion of an Ender 5 Plus. Sibling of [thebrain](thebrain.md) and built from the same shared files.
 
-**Status, 2026-11-23:** powered on for the first time since March 2025. It homes, but **the probe fails after one or two touches**, the same fault that ended its last session. It cannot start a print until the probe is fixed. See "First power-on" below. Nothing else about how it behaves has been checked; treat the thebrain notes as the best guide.
+**Status, 2026-11-23:** powered on for the first time since March 2025. The probe that ended its last session was replaced the same day and the new one passes its first checks. It has not printed yet. Nothing else about how it behaves has been checked; treat the thebrain notes as the best guide.
 
 ## Host and software, as found 2026-11-23
 
@@ -40,7 +40,18 @@ After a pull it gets the fixed versions of all of these. They were proven on the
 - `mainsail.cfg`
 - `macros-common.cfg`, `macro-test_speed.cfg`, `macro-heat_soak.cfg`, `macro-wipe_line.cfg`, `macros-lazy_homing.cfg`, `macros-printer_power.cfg`
 
-The stepper file is the main hardware difference from thebrain: 64 microsteps and different motors (its comments name Fabreek Honey Badger 42HS48-25044A and LDO 42STH48-2504AC). Which motors are really fitted is unverified.
+The stepper file is the main hardware difference from thebrain:
+
+| | pinky | thebrain |
+|---|---|---|
+| X/Y/Z motors | 1.8° (200 steps per turn), 2.5 A rated. The file's comments name Fabreek Honey Badger 42HS48-25044A on X/Y and LDO 42STH48-2504AC on Z. | 0.9° (400 steps per turn), 2.0 A rated |
+| Microsteps | 64 | 32 |
+| Resolution | 320 microsteps per mm | 320 microsteps per mm |
+| Run current | 1.35 A on all four, about half the motors' rating (the TMC2209 limit) | 1.35 A on X/Y, 1.25 A on Z |
+
+- The owner confirmed the 200-step motors on 2026-11-23. Because the motors differ, thebrain's resonance figures are not a baseline for pinky; measure pinky on its own.
+- The file has a second `[tmc2209 stepper_y]` header that sets `driver_SGTHRS: 110`. Y homes on a physical switch, so it does nothing.
+- The extruder is the same on both: 0.9°, 32 microsteps.
 
 ### Values that live only on the host
 
@@ -53,7 +64,7 @@ The stepper file is the main hardware difference from thebrain: 64 microsteps an
 | `[dockable_probe] z_offset` | 7.260 |
 | Saved `default` bed mesh | 7×7 over 20…330, range about 0.30 mm, centre high |
 
-The Y shaper value looks wrong. thebrain, the same frame, resonates at about 42 Hz in Y. A fit of 104 Hz is what a sweep with no clear peak produces, which is also what thebrain's Y sweep looked like on 2026-11-23 when its gantry stopped following small moves. Re-measure before trusting it.
+The Y shaper value is worth re-measuring. thebrain's Y resonates at about 42 Hz, but its motors are different, so that is only a rough guide. A fit as high as 104 Hz is also what a sweep with no clear peak produces, which is what thebrain's Y sweep looked like on 2026-11-23 when its gantry stopped following small moves.
 
 ### Differences from thebrain in the machine file
 
@@ -94,6 +105,21 @@ What that points to, not yet confirmed by looking at the part:
 - The two readings are 0.2 mm apart, against 0.002–0.006 mm on thebrain's probe. The probe moved on its mount between touches.
 - The circuit then stayed open. On this probe the magnets are also the electrical contacts, so either the probe unseated enough to lose contact, or the switch stuck pressed.
 - Things to look at: magnets loose or dirty, on the probe and on the toolhead mount; the switch plunger sticking; a broken wire at the toolhead.
+
+### Probe replaced, same day
+
+The owner swapped the probe. Two attempts in the console history around the swap failed (one `Probe triggered prior to movement` after a single reading, one `Probe attach failed!`); whether those were before or after the new probe went in is not recorded. Everything after that passed:
+
+| Check | Result |
+|---|---|
+| `Z_TILT_ADJUST` (run by the owner) | Converged in four passes: range 0.874 → 0.135 → 0.021 → 0.009 mm. The bed had drifted 0.87 mm out of level across the two Z motors while idle. |
+| Pick-up and docking | 4 of 4 clean, by the reported probe state |
+| Repeatability at bed centre, 3 × 10 samples | Range 0.018–0.019 mm, standard deviation 0.005–0.007 mm. Medians 7.234, 7.230, 7.219. |
+| `CALIBRATE_Z`, cold | probe 7.256, switch 12.481, nozzle 5.358 → offset -0.336 mm |
+
+- The repeatability is good enough for the configured 0.033 mm sample tolerance, but about three times looser than thebrain's probe at its bed centre.
+- In February 2025, hot and with the old probe, `CALIBRATE_Z` gave offsets of -0.20 to -0.29 mm (probe 7.33–7.41, switch 12.51–12.55, nozzle 5.36–5.42). The new figure is about 0.1 mm lower. Some of that is a cold bed and nozzle; some may be the new switch. `switch_offset` (0.470) was tuned for the old probe, so **check the first layer before trusting it**.
+- For a watchdog during `CALIBRATE_Z`, the touches happen at about Z 5.4 over the nozzle pin, Z 12.5 at the switch position and Z 7.3 on the bed.
 
 The camera snapshot address on this host is `/webcam/snapshot`.
 
