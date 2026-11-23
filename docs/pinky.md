@@ -102,7 +102,7 @@ The owner swapped the probe. Two attempts in the console history around the swap
 | Check | Result |
 |---|---|
 | `Z_TILT_ADJUST` (run by the owner) | Converged in four passes: range 0.874 → 0.135 → 0.021 → 0.009 mm. The bed had drifted 0.87 mm out of level across the two Z motors while idle. |
-| Pick-up and docking | 4 of 4 clean, checked by the probe state and the camera |
+| Pick-up and docking | 4 of 4 clean, by the reported probe state |
 | Repeatability at bed centre, 3 × 10 samples | Range 0.018–0.019 mm, standard deviation 0.005–0.007 mm. Medians 7.234, 7.230, 7.219. |
 | `CALIBRATE_Z`, cold | probe 7.256, switch 12.481, nozzle 5.358 → offset -0.336 mm |
 
