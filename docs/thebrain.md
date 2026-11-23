@@ -266,7 +266,7 @@ To roll back:
 | Z homing, nozzle on the endstop after each of 12 homes | Within 0.05 mm | Six homes within 0.019 mm, measured a different way |
 | X/Y homing | About 0.01 mm | About 0.01 mm |
 | `PRINT_START`, pause, resume, cancel (air print) | All work. Bed lowers on cancel. | Same |
-| Baseline cube | 1554 s of printing, 1937 mm of filament | 1546 s, 1937 mm |
+| Baseline cube | 1554 s of printing, 1937 mm of filament. Owner's verdict: looks good. | 1546 s, 1937 mm. Owner's verdict: a very good print, with some surface noise left to tune out. |
 | Timing or communication errors during the cube | None | None |
 | Power-off after a finished print | Relay cut about 5.5 minutes after the cube ended, once the bed fell below 50°C | Same behaviour |
 | Neopixel update errors | Still present: about 8,000 in 46 minutes | 11,278 in 38 minutes |
