@@ -8,7 +8,7 @@ Klipper firmware configuration fragments (`.cfg`) for a fleet of 3D printers. Th
 
 ## Deployment
 
-Each printer host (a Pi running Klipper + Moonraker) has this repo cloned at `~/printer_data/config/printer-configs`. Moonraker's `update_manager` entry `farhoodliquor-printer-configs` pulls it from GitHub (`cpfarhood/printer-configs`) and restarts Klipper. So a change reaches a printer only after it's pushed to `master` and pulled on the host. Moonraker settings live in a sibling repo, `cpfarhood/printer-moonraker-configs`.
+Each printer host (a Pi running Klipper + Moonraker) has this repo cloned at `~/printer_data/config/printer-configs`. Moonraker's `update_manager` entry `farhoodliquor-printer-configs` is meant to pull it from GitHub (`cpfarhood/printer-configs`) and restart Klipper, but the entry is commented out in the Mercury machines' shared Moonraker include (seen on pinky; thebrain was pulled by hand). So a change reaches a printer only after it's pushed to `master` and pulled on the host with `git pull`, followed by a Klipper restart. A host can be far behind: check its checkout before assuming it has a change. Moonraker settings live in a sibling repo, `cpfarhood/printer-moonraker-configs`.
 
 Moonraker's `[power printer]` device has `klipper` as a bound service. When the idle power-off macro fires, Klipper is stopped and the Moonraker API reports "Klippy Host not connected". That is expected, not a fault. On printers with `startupinit: True`, every Klipper start runs `PRINTER_STARTUP`, which heats, homes and sweeps the toolhead across the bed. That includes the restart after a config pull.
 

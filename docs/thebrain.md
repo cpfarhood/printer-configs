@@ -2,6 +2,8 @@
 
 An Ender 5 Plus converted to a ZeroG Mercury One (CoreXY), then customised further. Last inspected live on 2026-11-22, the day it moved from Danger Klipper to Kalico.
 
+**Out of service since 2026-11-23** while a mechanical problem in the Y axis is tracked down. See "2026-11-23: Y stopped following small moves" under Incidents. Do not rely on the resonance or belt figures below until that is resolved.
+
 ## Hardware
 
 Checked on the machine unless marked otherwise. Several labels in the config files disagree with this table; the table is right.
@@ -194,6 +196,38 @@ The test file `audit_airprint.gcode` is still in the host's gcode folder and can
 
 ## Incidents
 
+### 2026-11-23: Y stopped following small moves (open)
+
+The owner tightened the lower belt to even out the two belts. The sweeps run afterwards showed a new fault, and the printer was taken out of service to work on it.
+
+What the accelerometer showed, as the share of each commanded shake that reached the toolhead in Y (1.0 = follows exactly):
+
+| Shake frequency | Size of the move | 2026-11-22 | After tightening | After both belts were reset |
+|---|---|---|---|---|
+| 11 Hz | about 0.12 mm | 1.15 | 0.93 | 0.86 |
+| 21 Hz | about 0.06 mm | 0.78 | 0.24 | 0.30 |
+| 30 Hz | about 0.04 mm | 1.20 | 0.09 | 0.10 |
+| 40 Hz | about 0.03 mm | 4.90 (the resonance) | not tracked | 0.10 |
+
+- Y follows moves larger than about 0.1 mm and ignores reversals smaller than about 0.05 mm: roughly 0.1 mm of lost motion. The old 42 Hz Y resonance is simply absent, at the front, middle and back of the bed alike.
+- X is unaffected. It now shows one main peak at 62.3 Hz and fits `mzv` at 62.8 Hz (saved: 59.2). Not saved.
+- The Y component is also missing from both single-belt sweeps, so those sweeps now look alike whatever the belts are doing. **They cannot be used to judge belt balance while Y is stuck.**
+- The response is never amplified at any frequency, so this is not a softer, lower resonance. A slipping pulley would show in X as well. The raw data has no knocking in it, which argues for binding over a loose part.
+- Loosening and re-tightening both belts together changed nothing, so it does not depend on the present belt settings.
+
+What the owner found by hand, motors off:
+
+- A tight-loose pulse about once per motor turn (40 mm of travel), felt both front-back and along the gantry. That points at an off-centre pulley or idler in a belt path. It may predate the belt work.
+- With the right end of the gantry against the back, the left end sits 0.5–1 mm short.
+
+Working theory, not confirmed: the first adjustment pulled the gantry out of square on its Y carriages, and the carriages now bind until the belts have wound up enough force to free them. Next check: slacken both belts fully and see whether the gantry glides and sits square. If it does not, square the beam on its carriages before re-tensioning.
+
+Also learned that morning:
+
+- An idle printer that reaches the 10-minute timeout runs `M84` and turns the part fan on full. A command sent seconds later homes normally but leaves the fan at 100%. Turn it off before a resonance test.
+- Kalico's `TEST_RESONANCES` takes `FREQ_START`, `FREQ_END` and `POINT`, so a 20–60 Hz Y check takes 40 seconds.
+- The accelerometer's axes are not mapped: its X is vertical, its Y is the toolhead's X, and its Z is the toolhead's Y. The shaper fit does not care, but any per-direction reading of the raw data does.
+
 ### 2026-11-22: false emergency stop during testing
 
 A test watchdog read Kalico's momentary all-zero live position as the bed rising and sent an emergency stop. Nothing was moving toward the nozzle. Klipper shut down at the start of a probe command; a firmware restart and re-home recovered it. The watchdog rule was corrected the same evening.
@@ -304,7 +338,8 @@ Ordered roughly by value. None of these are done.
 
 **Motion**
 
-- Even out belt tension (lower belt 54 Hz, upper 63 Hz), then re-run the shaper.
+- Find and fix the Y lost motion (see Incidents, 2026-11-23), then even out the belts and re-run the shaper. Before the belt work the lower belt read 54 Hz and the upper 63 Hz.
+- A pulley or idler runs off-centre: belt tension pulses once per motor turn.
 - Calibrate pressure advance.
 - The slicer profile prints at 750–1500 mm/s² against a machine limit of 5000. The shaper results support about 5000.
 - Neopixel update errors. Try a newer `led_effect` and a lower frame rate than 24 fps.

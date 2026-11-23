@@ -2,41 +2,86 @@
 
 ZeroG Mercury One conversion of an Ender 5 Plus. Sibling of [thebrain](thebrain.md) and built from the same shared files.
 
-**Everything here is read from the config files. The machine has not been inspected live.** Treat the thebrain notes as the best guide to how it behaves, and verify before relying on any of it.
+**Status, 2026-11-23:** the host was read over the network with the printer's power relay off. Nothing has been powered, heated or moved yet, so everything about how the machine behaves is still unverified. Treat the thebrain notes as the best guide until it has been checked.
+
+## Host and software, as found 2026-11-23
+
+| Part | What is there |
+|---|---|
+| Host | Raspberry Pi 4 Model B rev 1.4, 4 GB, Raspbian 11 (64-bit), Python 3.9.2, booting from a USB drive. Wired and wireless interfaces are both up. |
+| Klipper | Danger Klipper `v0.12.0-526-g3fcbc0b4` (December 2024), the same commit thebrain ran before its Kalico move. The remote still points at the old Danger Klipper repository. |
+| Toolhead board firmware | Same version, per the March 2025 log. CAN at 1 Mbit. |
+| Moonraker | `v0.9.3-62` |
+| Plugins | `led_effect` linked into `klippy/extras`. `z_calibration` and `dockable_probe` are present there. |
+| Mainsail macros | `mainsail.cfg` dated 2024-01-17. It has the `user_pause_macro` / `user_cancel_macro` hooks and the `idle_state` variable the shared macros rely on. |
+| Other services | KlipperScreen, crowsnest, sonar, Obico, Mobileraker companion |
+| Power | Same arrangement as thebrain: Moonraker switches the printer through a GPIO relay, off at boot, with `klipper` as a bound service. |
+
+Moonraker took about four and a half minutes after boot to start answering. Until then Mainsail loads but shows a gateway error.
+
+### This checkout is behind
+
+The config repo on the host is at `c91d0d1` (2025-02-26), 23 commits behind `master`. **None of the 2026-11-22 changes are on the machine yet.** Neither `moonraker.conf` nor its shared include has an `update_manager` entry for this repo, so it only updates by a manual `git pull`.
+
+Until it is pulled, pinky still has:
+
+- `stepper_z position_min: -15`, the setting that let a missed probe drive thebrain's bed into its toolhead.
+- `bed_mesh mesh_max: 377,350`.
+- The old `PAUSE`, `RESUME` and `CANCEL_PRINT` overrides in `macros-common.cfg`, and the old idle timeout that abandons a paused print.
+- Hotend `max_temp` 310.
+
+After a pull it gets the fixed versions of all of these. They were proven on thebrain's bed and macros, not on pinky's.
 
 ## Config
 
-- Machine file: `printer-pinky.cfg`
-- Shared with thebrain: `printer-common.cfg`, `printer-mercury_one_plus.cfg`, and the macro files. The host's own `printer.cfg` has not been read, so the toolhead and stepper files it includes are unverified.
-- The `[mcu]` comment says BTT SKR Mini E3 V3 on the Pi UART at 500000 baud, with a CAN toolhead board (`head0`).
+`printer.cfg` on the host includes, in order:
 
-## Differences from thebrain (as of 2026-11-22)
+- `printer-common.cfg`, `printer-mercury_one_plus.cfg`, `toolhead-afterburner.cfg`, `printer-pinky.cfg`, `steppers-ldo_42sth48-2504ac.cfg`
+- `mainsail.cfg`
+- `macros-common.cfg`, `macro-test_speed.cfg`, `macro-heat_soak.cfg`, `macro-wipe_line.cfg`, `macros-lazy_homing.cfg`, `macros-printer_power.cfg`
+
+The stepper file is the main hardware difference from thebrain: 64 microsteps and different motors (its comments name Fabreek Honey Badger 42HS48-25044A and LDO 42STH48-2504AC). Which motors are really fitted is unverified.
+
+### Values that live only on the host
+
+| Setting | Value |
+|---|---|
+| `[extruder]` PID | kp 18.115, ki 0.693, kd 118.312 |
+| `[heater_bed]` PID | kp 50.732, ki 0.505, kd 1274.653 |
+| `[input_shaper]` | X mzv 63.2 Hz, Y mzv 104.4 Hz |
+| `[stepper_z] position_endstop` | 4.796 |
+| `[dockable_probe] z_offset` | 7.260 |
+| Saved `default` bed mesh | 7×7 over 20…330, range about 0.30 mm, centre high |
+
+The Y shaper value looks wrong. thebrain, the same frame, resonates at about 42 Hz in Y. A fit of 104 Hz is what a sweep with no clear peak produces, which is also what thebrain's Y sweep looked like on 2026-11-23 when its gantry stopped following small moves. Re-measure before trusting it.
+
+### Differences from thebrain in the machine file
 
 | Setting | pinky | thebrain |
 |---|---|---|
 | `dockable_probe` dock / approach X | 209 | 210.5 |
 | `z_calibration switch_offset` | 0.470 | 0.525 |
 | `startupinit` | True | False |
+| `lowerbedoncancel`, `STARTUP_IDLE` block | absent | present |
+| LED colours | purple | red |
 
-Everything else in the two machine files is identical apart from the CAN UUID.
+## History
 
-## Changes that reached pinky through shared files on 2026-11-22
+- 567 jobs, about 961 print hours and 7.2 km of filament.
+- Last completed print: 2025-02-27 (PETG at 225°C, 106 minutes).
+- The last three attempts, on 2025-02-28 (twice) and 2025-03-07, were cancelled before printing anything.
+- The final session's log ends with `Probe triggered prior to movement` twice during the probing at the start of a print, right after a normal reading at 35,165. On a Klicky-style probe that usually means the probe was not on the toolhead or its circuit was open. The printer has not run since, so **assume the probe or its dock needs attention**.
+- The same logs show the neopixel update errors and the dead `COMPUTE_MESH_PARAMETERS` and `DOCK_PROBE` calls seen on thebrain.
 
-These were made after an incident on thebrain and have **not been tested on pinky**:
+## Before the first power-on
 
-- `stepper_z position_min` -15 → -2.
-- `bed_mesh mesh_max` 377,350 → 335,315. The new bounds were proven on thebrain's bed. Whether pinky's plate sits in the same place relative to its coordinates is unknown.
-- `PAUSE`, `RESUME` and `CANCEL_PRINT` now come from Mainsail, with the LED and power-off hooks enabled in `_CLIENT_VARIABLE`.
-- While a print is paused, the idle timeout turns off only the hotend, then gives up after 4 more hours.
-- Hotend `max_temp` 310 → 285, if pinky uses `toolhead-afterburner.cfg`.
+- `startupinit: True`: as soon as the relay switches on, Klipper starts, heats to 184/50°C, homes, and sweeps the toolhead around the bed starting at about 19 mm. Anything on the bed taller than that gets hit. Clear the bed first, or turn `startupinit` off as was done on thebrain.
+- Check by eye that the probe is sitting in its dock.
+- Pull the repo first so the Z floor and mesh limits are the fixed ones.
 
-## Still true on pinky
+## To check once it is running
 
-- `startupinit: True`: every Klipper start heats to 184/50°C, homes, and sweeps the bed at about 19 mm. Anything taller left on the bed gets hit.
-- `[z_calibration] end_gcode` calls `DOCK_PROBE`, which is not a command in the installed `dockable_probe` module on thebrain. It prints "Unknown command" and does nothing.
-
-## To check when someone is at the machine
-
-- Where the probe pin runs off the plate on the right and back edges, before widening the mesh.
-- Which Klipper fork and version the host runs. Option and command names depend on it. thebrain moved to Kalico on 2026-11-22; pinky has not been touched. The shared `[fan]` section still uses `off_below` because mainline Klipper has no `min_power`.
-- Belt resonance on each diagonal, gantry tilt convergence, and Z calibration repeatability, as measured on thebrain.
+- Where the probe pin runs off the plate on the right and back edges, before any full mesh.
+- Probe repeatability, gantry tilt convergence and Z calibration repeatability, as measured on thebrain.
+- Resonance on X, Y and each belt diagonal, including whether Y follows small moves at all (see thebrain's 2026-11-23 notes).
+- Which motors and boards are actually fitted.
