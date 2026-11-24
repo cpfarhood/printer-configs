@@ -2,7 +2,7 @@
 
 An Ender 5 Plus converted to a ZeroG Mercury One (CoreXY), then customised further. Last inspected live on 2026-11-22, the day it moved from Danger Klipper to Kalico.
 
-**Out of service since 2026-11-23** while a mechanical problem in the Y axis is tracked down. See "2026-11-23: Y stopped following small moves" under Incidents. Do not rely on the resonance or belt figures below until that is resolved.
+**Back on the bench since 2026-11-24** with new belts and adjusted, lubricated rails, after being out of service from 2026-11-23 for a Y-axis fault. Sweeps that day show Y close to its 2026-11-22 state; no print has run since. See "2026-11-24: back with new belts" under Incidents. The belt figures below predate the new belts.
 
 ## Hardware
 
@@ -228,6 +228,28 @@ Also learned that morning:
 - Kalico's `TEST_RESONANCES` takes `FREQ_START`, `FREQ_END` and `POINT`, so a 20–60 Hz Y check takes 40 seconds.
 - The accelerometer's axes are not mapped: its X is vertical, its Y is the toolhead's X, and its Z is the toolhead's Y. The shaper fit does not care, but any per-direction reading of the raw data does.
 
+### 2026-11-24: back with new belts
+
+The owner fitted new belts and adjusted and lubricated the rails. First powered moves afterwards: X and Y homed in the right directions and repeated to 0.09 mm; Z was not homed and nothing was probed. Sweeps at bed centre.
+
+Y tracking at the configured `accel_per_hz: 50` (1.0 means the toolhead moves as commanded):
+
+| Shake frequency | Size of the move | 2026-11-22 | 2026-11-23, fault | 2026-11-24 |
+|---|---|---|---|---|
+| 11 Hz | ±0.115 mm | 1.15 | 0.86 | 1.40 |
+| 21 Hz | ±0.060 mm | 0.78 | 0.30 | 0.78 |
+| 30 Hz | ±0.042 mm | 1.20 | 0.10 | 0.72 |
+| 35 Hz | ±0.036 mm | not recorded | not recorded | 0.20 |
+| 40 Hz | ±0.032 mm | 4.90 (the resonance) | 0.10 | 0.20 |
+
+- Y follows down to about ±0.04 mm, where on 2026-11-23 it stopped near ±0.1 mm. Below ±0.04 mm it still does not follow; on 2026-11-22 it carried through its resonance at that size. The earlier columns were computed with an older script, so compare them loosely.
+- With `ACCEL_PER_HZ=100` Y follows through the whole sweep and shows one peak at 45.2 Hz (41.7 Hz with the old belts). Best fit mzv 47.4 Hz; the saved mzv 43.2 Hz leaves 0.0% residual on the same data.
+- X follows throughout. Main peak 65.4 Hz with a small one at 56.1 Hz. Best fit mzv 68.6 Hz; the saved mzv 59.2 Hz leaves 1.5%.
+- The saved shapers were left as they are. Nothing was saved.
+- No belt teeth skipped: re-homing after the sweeps returned to within 0.03 mm.
+
+Raw files: `~/resonance-2026-11-24/` on the host.
+
 ### 2026-11-22: false emergency stop during testing
 
 A test watchdog read Kalico's momentary all-zero live position as the bed rising and sent an emergency stop. Nothing was moving toward the nozzle. Klipper shut down at the start of a probe command; a firmware restart and re-home recovered it. The watchdog rule was corrected the same evening.
@@ -338,7 +360,7 @@ Ordered roughly by value. None of these are done.
 
 **Motion**
 
-- Find and fix the Y lost motion (see Incidents, 2026-11-23), then even out the belts and re-run the shaper. Before the belt work the lower belt read 54 Hz and the upper 63 Hz.
+- Y lost motion: much reduced on 2026-11-24 after new belts and rail work (see Incidents); Y still ignores moves under about ±0.04 mm. Judge it by a print. Belt balance has not been measured on the new belts; the diagonal sweeps need `ACCEL_PER_HZ=100` to show it.
 - A pulley or idler runs off-centre: belt tension pulses once per motor turn.
 - Calibrate pressure advance.
 - The slicer profile prints at 750–1500 mm/s² against a machine limit of 5000. The shaper results support about 5000.
