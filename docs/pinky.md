@@ -59,12 +59,12 @@ The stepper file is the main hardware difference from thebrain:
 |---|---|
 | `[extruder]` PID | kp 18.115, ki 0.693, kd 118.312 |
 | `[heater_bed]` PID | kp 50.732, ki 0.505, kd 1274.653 |
-| `[input_shaper]` | X mzv 63.2 Hz, Y mzv 104.4 Hz |
+| `[input_shaper]` | X mzv 63.2 Hz, Y mzv 42.0 Hz (104.4 Hz until 2026-11-24) |
 | `[stepper_z] position_endstop` | 4.796 |
 | `[dockable_probe] z_offset` | 7.260 |
 | Saved `default` bed mesh | 7×7 over 20…330, range about 0.30 mm, centre high |
 
-The Y value is not a real resonance. See "Resonance, 2026-11-23": at the configured test strength Y does not follow the small moves a sweep uses, so that fit had nothing to work with. Measured with a stronger shake, Y resonates at 40.9 Hz and the right value is mzv 42.0 Hz. Not saved yet.
+The old Y value was not a real resonance. See "Resonance, 2026-11-23": at the configured test strength Y does not follow the small moves a sweep uses, so that fit had nothing to work with. Measured with a stronger shake, Y resonates at 40.9 Hz. The saved value was changed to mzv 42.0 Hz on 2026-11-24 by editing the saved block in the host's `printer.cfg` with Klipper stopped (a `SAVE_CONFIG` only writes values a calibration command has queued); Klipper loaded it on the next start. The previous file is kept beside it as `printer-20261124_*.cfg`. No print has run with the new value yet.
 
 ### Differences from thebrain in the machine file
 
@@ -231,7 +231,7 @@ The raw sweep files are in `~/resonance-2026-11-23/` on the host.
 - Neopixel update errors, as on thebrain: about 4,500 in the first 45 minutes of the day. Each one is eight failed attempts by the main board.
 - `switch_offset` was tuned for the old probe; check the first layer.
 - **Y does not follow small moves.** Below about ±0.06 mm the gantry stays put, because the motors wind up against friction in Y before it moves; see "Resonance, 2026-11-23". Look at the Y rails and the squareness of the X beam on its carriages.
-- **The saved Y shaper is wrong.** It is 104.4 Hz; the measured resonance is 40.9 Hz (mzv 42.0 Hz). With the saved value Y has effectively no input shaping. The value lives on the host and has not been changed.
+- **The saved Y shaper was wrong and is now corrected.** It was 104.4 Hz, which left Y with effectively no input shaping; the measured resonance is 40.9 Hz and the host now has mzv 42.0 Hz (2026-11-24). Check Y ringing on the first real print. The fit's suggested acceleration limit is about 5200, above the configured `max_accel` of 5000.
 - `accel_per_hz: 50` in `[resonance_tester]` is too gentle for Y on this machine. Use `ACCEL_PER_HZ=100` on the command until the config is changed.
 - The config also carries thebrain's open macro items: the dead `COMPUTE_MESH_PARAMETERS` and `DOCK_PROBE` calls, and `off_below`.
 
