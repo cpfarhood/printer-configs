@@ -269,6 +269,12 @@ The owner set the belts again before touching the rails, so that lubrication can
 
 Raw files: `~/resonance-2026-11-24-retension/` on the host.
 
+### Third check, same day
+
+Run at the owner's request after a further change that was not described at the time (lubrication of the rails was the planned next step). Y tracking at `accel_per_hz: 50`: 0.47 at ±0.079 mm, 0.56 at ±0.070 mm, 0.26 at ±0.063 mm, 0.23 at ±0.058 mm, 0.11 at ±0.049 mm. That is the same as the re-tensioned state within the scatter between runs. With `ACCEL_PER_HZ=100` Y got a little further (0.89 at 35 Hz, against 0.32) but still dropped out before its resonance (0.41 at 40 Hz), so there is still no Y shaper value. X follows. So far only loosening the belts has made Y follow smaller moves.
+
+Raw files: `~/resonance-2026-11-24-check3/` on the host.
+
 ## Open items
 
 - **Intermittent `Communication timeout during homing`.** `multi_mcu_trsync_timeout` is raised to 0.05 s in `printer-pinky.cfg` as a mitigation; see "Homing timeout" above. It was pulled and confirmed active (0.05) on 2026-11-23, on Kalico. Not yet shown to work: the fault is rare, so it needs a run of print starts without one. The causes behind it are still open: the main board's serial link corrupts data while the heaters are on, and the LED updates fail in bursts.
