@@ -2,7 +2,7 @@
 
 ZeroG Mercury One conversion of an Ender 5 Plus. Sibling of [thebrain](thebrain.md) and built from the same shared files.
 
-**Status, 2026-11-23:** powered on for the first time since March 2025. The probe that ended its last session was replaced the same day and the new one passes its first checks. It has not printed yet. Nothing else about how it behaves has been checked; treat the thebrain notes as the best guide.
+**Status, 2026-11-23:** powered on for the first time since March 2025. The probe that ended its last session was replaced the same day, and a no-extrusion air print then ran `PRINT_START`, pause, resume, cancel and the power-off correctly. It has not made a real print yet. One of two print starts failed on an intermittent homing timeout; see "Open items".
 
 ## Host and software, as found 2026-11-23
 
@@ -122,6 +122,36 @@ The owner swapped the probe. Two attempts in the console history around the swap
 - For a watchdog during `CALIBRATE_Z`, the touches happen at about Z 5.4 over the nozzle pin, Z 12.5 at the switch position and Z 7.3 on the bed.
 
 The camera snapshot address on this host is `/webcam/snapshot`.
+
+### Air print, same day
+
+The no-extrusion test file from thebrain (`audit_airprint.gcode`, 190/50°C, a square at Z20 around the bed centre), run with the repo at `master`.
+
+| Step | Result |
+|---|---|
+| First attempt | Cancelled itself within a second: `Error during homing x: Communication timeout during homing`. The cancel then powered the cold printer off 30 s later, as designed. |
+| Second attempt, `PRINT_START` | Completed in about 7 minutes from cold |
+| Tilt adjust inside it | Four passes: 0.820 → 0.122 → 0.020 → 0.003 mm |
+| `CALIBRATE_Z`, hot | probe 7.316, switch 12.459, nozzle 5.316 → offset -0.297 mm |
+| Adaptive mesh | 3×3 around the object, completed |
+| Pause | Parked at X390 Y385, 15 mm up |
+| Resume | Went back and carried on |
+| Cancel | Both heater targets to 0 at once, parked at X390 Y385 |
+| Power-off after cancel | Relay cut 395 s later, when the nozzle fell below 50°C |
+
+- No errors came from the pause, resume or cancel hooks. The LED effects themselves could not be checked; the strip is out of the camera's view.
+- The bed was 0.82 mm out of level again at the start, after being levelled to 0.009 mm half an hour earlier. It loses its level every time the Z motors are released. The tilt adjust at each print start corrects it.
+- About 2.5 of the 7 minutes were spent after the mesh, waiting for the nozzle to settle: it rose to 191.2°C when the part fan switched off and `M109` waits for it to steady.
+- `PRINT_START` ends with an 11 mm extrude after a 10 mm retract, so the "no-extrusion" test does push about 1 mm of filament if any is loaded.
+- Not run on pinky: a pause held past the idle timeout, the 4-hour give-up, and an unused printer powering itself off.
+
+## Open items
+
+- **Intermittent `Communication timeout during homing`.** It stopped one of two print starts on 2026-11-23 (homing X) and three print starts in the February 2025 logs (while probing). X's endstop and the probe are on the toolhead board and the motors are on the main board, so every homing or probing move needs the two boards to stay in step through the host. The CAN bus counters show no errors. The main board's serial link shows a few retransmitted bytes (9 in 30 minutes). Danger Klipper has a setting for this, `[danger_options] multi_mcu_trsync_timeout` (default 0.025 s); raising it is the usual remedy. Not changed yet.
+- Neopixel update errors, as on thebrain: about 4,500 in the first 45 minutes of the day.
+- `switch_offset` was tuned for the old probe; check the first layer.
+- Saved Y input shaper value (104.4 Hz) needs re-measuring.
+- The config also carries thebrain's open macro items: the dead `COMPUTE_MESH_PARAMETERS` and `DOCK_PROBE` calls, and `off_below`.
 
 ## Before powering on
 
