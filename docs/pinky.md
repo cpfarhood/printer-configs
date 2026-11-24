@@ -145,10 +145,31 @@ The no-extrusion test file from thebrain (`audit_airprint.gcode`, 190/50°C, a s
 - `PRINT_START` ends with an 11 mm extrude after a 10 mm retract, so the "no-extrusion" test does push about 1 mm of filament if any is loaded.
 - Not run on pinky: a pause held past the idle timeout, the 4-hour give-up, and an unused printer powering itself off.
 
+### Homing timeout: what the logs show
+
+`Communication timeout during homing` has stopped four print starts in the logs kept on the host: one on 2025-02-27 and two on 2025-02-28 while probing, and one on 2026-11-23 while homing X. X's endstop and the probe are on the toolhead board and the motors are on the main board, so during those moves the host has to pass a keep-alive between the two boards within `multi_mcu_trsync_timeout`, 0.025 s by default. Y and Z home on switches wired to the main board and do not depend on it.
+
+Per-session link counters from the Klipper logs:
+
+| Link | Resent bytes | Invalid bytes |
+|---|---|---|
+| Toolhead board (CAN) | 0 in every session | 0 in every session |
+| Main board (serial from the Pi), 2026-11-23, 22 minutes of homing and probing with heaters off | 9, all at connect | 0 |
+| Main board, 2026-11-23, 9 minutes with heaters on | 941 | 279 |
+| Main board, 2025-02-27, 4-hour print | 118,057 | 2,263 |
+
+- **The CAN side is clean.** The interface counters on the Pi also show no bus errors.
+- **The main board's serial link is not.** Every logged session with the heaters on shows corrupted data, and the one session without them shows none, so it looks like electrical noise from heater switching reaching the wiring between the Pi and the board. Klipper resends, so prints survive it, but a resend waits 0.025 s, the same as the homing timeout.
+- **The link errors do not explain every timeout.** In three of the four, including the one on 2026-11-23, neither counter moved in the second the timeout happened. Something else also delays the keep-alive.
+- **The LED updates are a candidate.** `Neopixel update did not succeed` is logged in bursts of up to seven a second, and each line means eight failed attempts in a row on the main board. With an animated effect running the main board reports being busy about 11% of the time, against 0.5% with a static one. Not tested: whether the timeouts go away with the effects off.
+
+Change made: `multi_mcu_trsync_timeout: 0.05` in `printer-pinky.cfg`. That is long enough to ride out one resend or one late message. The cost is that if a board really does stop answering during a homing or probing move, the motors run for up to 0.05 s instead of 0.025 s before stopping: 0.25 mm at the 5 mm/s probing speed, 6 mm at the 120 mm/s X homing speed.
+
 ## Open items
 
-- **Intermittent `Communication timeout during homing`.** It stopped one of two print starts on 2026-11-23 (homing X) and three print starts in the February 2025 logs (while probing). X's endstop and the probe are on the toolhead board and the motors are on the main board, so every homing or probing move needs the two boards to stay in step through the host. The CAN bus counters show no errors. The main board's serial link shows a few retransmitted bytes (9 in 30 minutes). Danger Klipper has a setting for this, `[danger_options] multi_mcu_trsync_timeout` (default 0.025 s); raising it is the usual remedy. Not changed yet.
-- Neopixel update errors, as on thebrain: about 4,500 in the first 45 minutes of the day.
+- **Intermittent `Communication timeout during homing`.** `multi_mcu_trsync_timeout` is raised to 0.05 s in `printer-pinky.cfg` as a mitigation; see "Homing timeout" above. Not yet shown to work: the fault is rare, so it needs a run of print starts without one. The causes behind it are still open: the main board's serial link corrupts data while the heaters are on, and the LED updates fail in bursts.
+- **Main board temperature.** The board's own sensor reads 85–88°C in every session long enough to warm up, in 2025 and now, and reaches it within 15 minutes with only the motors energised. Check that the case fan spins and actually blows across the drivers.
+- Neopixel update errors, as on thebrain: about 4,500 in the first 45 minutes of the day. Each one is eight failed attempts by the main board.
 - `switch_offset` was tuned for the old probe; check the first layer.
 - Saved Y input shaper value (104.4 Hz) needs re-measuring.
 - The config also carries thebrain's open macro items: the dead `COMPUTE_MESH_PARAMETERS` and `DOCK_PROBE` calls, and `off_below`.
