@@ -64,7 +64,7 @@ The stepper file is the main hardware difference from thebrain:
 | `[dockable_probe] z_offset` | 7.260 |
 | Saved `default` bed mesh | 7×7 over 20…330, range about 0.30 mm, centre high |
 
-The Y value is not a real resonance. See "Resonance, 2026-11-23": Y does not follow the small moves a sweep uses, so the fit has nothing to work with.
+The Y value is not a real resonance. See "Resonance, 2026-11-23": at the configured test strength Y does not follow the small moves a sweep uses, so that fit had nothing to work with. Measured with a stronger shake, Y resonates at 40.9 Hz and the right value is mzv 42.0 Hz. Not saved yet.
 
 ### Differences from thebrain in the machine file
 
@@ -172,7 +172,8 @@ Measured on Kalico with the toolhead accelerometer at bed centre: sweeps along X
 | Sweep | Peaks | Best fit |
 |---|---|---|
 | X | 57.7 and 63.7 Hz | mzv 61.0 Hz, no residual vibration |
-| Y | 18, 62, 93 and 103 Hz, none dominant | Nothing fits: every shaper leaves 15–37% |
+| Y, at the configured `accel_per_hz: 50` | 18, 62, 93 and 103 Hz, none dominant | Nothing fits: every shaper leaves 15–37% |
+| Y, at `ACCEL_PER_HZ=100` | 40.9 Hz | mzv 42.0 Hz, no residual vibration |
 | Diagonal, one belt | 57.6 and 63.6 Hz | mzv 60.0 Hz |
 | Diagonal, other belt | 57.6 and 63.6 Hz | mzv 61.0 Hz |
 
@@ -193,8 +194,33 @@ Measured on Kalico with the toolhead accelerometer at bed centre: sweeps along X
 
 - X tracks at 1.0 and then rises into its resonance, as a rigid axis should. Y tracks down to a stroke of about ±0.07 mm and then stops moving: something takes up roughly 0.05 mm before the gantry shifts.
 - On the diagonal sweeps the X part of the motion follows and the Y part does not, whichever belt is driving. That rules out one motor, one pulley or one belt, and points at the gantry's travel along Y: the Y rails, or the X beam sitting out of square on its carriages.
-- This is the same pattern thebrain showed on 2026-11-23 after its belts were adjusted (0.86, 0.30, 0.10 at 11, 21 and 30 Hz). The saved 104.4 Hz Y value dates from before March 2025, so pinky has probably been like this for a long time, through much of its 567 jobs.
-- What it costs in prints: Y detail finer than about 0.05 mm is lost, and Y has no usable input shaping.
+- This is the same pattern thebrain showed on 2026-11-23 after its belts were adjusted (0.86, 0.30, 0.10 at 11, 21 and 30 Hz). The saved 104.4 Hz Y value dates from before March 2025 and is what a sweep with this fault produces, so pinky has probably been like this for a long time, through much of its 567 jobs.
+- What it costs in prints: Y detail finer than about 0.05 mm is lost.
+
+### What takes up the motion
+
+0.06 mm is 19 microsteps, about 0.3 of one full step of these 200-step motors (0.2 mm per full step). Between full steps a stepper holds position like a spring, so a load that resists can make the rotor lag the commanded position. Two further sets of Y sweeps tested that.
+
+Motor current lowered on both X/Y motors with `SET_TMC_CURRENT`, then restored:
+
+| Current | Stroke at which Y's tracking falls to half | X at ±0.03 mm |
+|---|---|---|
+| 1.35 A (normal), before and after | ±0.065 mm | 1.04 |
+| 1.0 A | ±0.08 mm | |
+| 0.7 A | ±0.10 mm | 0.83, no cut-off |
+
+Shake strength changed at normal current (`ACCEL_PER_HZ`, which scales the stroke at every frequency):
+
+| `ACCEL_PER_HZ` | Where Y stops following |
+|---|---|
+| 25 | 12 Hz, stroke ±0.05 mm |
+| 50 (configured) | 20–22 Hz, stroke ±0.06 mm |
+| 100 | Nowhere: Y follows through the whole sweep |
+
+- **The cut-off is set by stroke, not frequency.** It sits at ±0.05–0.06 mm whatever frequency that falls on.
+- **It grows as the motor current drops.** So the lost motion is the motors winding up against friction in Y, not slack in a belt or pulley, which would not care about current. X on the same motors keeps following at half the current, so the friction is in the gantry's travel along Y.
+- **With the stronger shake Y shows its real resonance:** one clean peak at 40.9 Hz, best fit mzv 42.0 Hz with no residual vibration. That is within 1 Hz of thebrain's Y (41.9 Hz).
+- Raising the motor current would shrink the lost motion, but the drivers are at their 1.4 A limit and the main board already reads 87°C. Reducing the friction is the fix.
 
 The raw sweep files are in `~/resonance-2026-11-23/` on the host.
 
@@ -204,7 +230,9 @@ The raw sweep files are in `~/resonance-2026-11-23/` on the host.
 - **Main board temperature.** The board's own sensor reads 85–88°C in every session long enough to warm up, in 2025 and now, and reaches it within 15 minutes with only the motors energised. Check that the case fan spins and actually blows across the drivers.
 - Neopixel update errors, as on thebrain: about 4,500 in the first 45 minutes of the day. Each one is eight failed attempts by the main board.
 - `switch_offset` was tuned for the old probe; check the first layer.
-- **Y does not follow small moves.** Below about ±0.06 mm the gantry stays put; see "Resonance, 2026-11-23". The saved Y shaper (104.4 Hz) is meaningless until that is fixed, and no better value can be measured. Look at the Y rails and the squareness of the X beam on its carriages.
+- **Y does not follow small moves.** Below about ±0.06 mm the gantry stays put, because the motors wind up against friction in Y before it moves; see "Resonance, 2026-11-23". Look at the Y rails and the squareness of the X beam on its carriages.
+- **The saved Y shaper is wrong.** It is 104.4 Hz; the measured resonance is 40.9 Hz (mzv 42.0 Hz). With the saved value Y has effectively no input shaping. The value lives on the host and has not been changed.
+- `accel_per_hz: 50` in `[resonance_tester]` is too gentle for Y on this machine. Use `ACCEL_PER_HZ=100` on the command until the config is changed.
 - The config also carries thebrain's open macro items: the dead `COMPUTE_MESH_PARAMETERS` and `DOCK_PROBE` calls, and `off_below`.
 
 ## Before powering on
