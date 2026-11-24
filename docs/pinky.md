@@ -203,7 +203,7 @@ Measured on Kalico with the toolhead accelerometer at bed centre: sweeps along X
 
 Motor current lowered on both X/Y motors with `SET_TMC_CURRENT`, then restored:
 
-| Current | Stroke at which Y's tracking falls to half | X at ±0.03 mm |
+| Current | Stroke at which Y's tracking falls to half | X at ±0.04 mm |
 |---|---|---|
 | 1.35 A (normal), before and after | ±0.065 mm | 1.04 |
 | 1.0 A | ±0.08 mm | |
@@ -218,9 +218,9 @@ Shake strength changed at normal current (`ACCEL_PER_HZ`, which scales the strok
 | 100 | Nowhere: Y follows through the whole sweep |
 
 - **The cut-off is set by stroke, not frequency.** It sits at ±0.05–0.06 mm whatever frequency that falls on.
-- **It grows as the motor current drops.** So the lost motion is the motors winding up against friction in Y, not slack in a belt or pulley, which would not care about current. X on the same motors keeps following at half the current, so the friction is in the gantry's travel along Y.
+- **It grows as the motor current drops.** (Every sweep, X included, shows a drop of about a quarter between 12 and 13 Hz that looks like a feature of the test signal; the 0.7 A figure falls on it, so treat that one as approximate.) So the lost motion is the motors winding up against friction in Y, not slack in a belt or pulley, which would not care about current. X on the same motors keeps following at half the current, so the friction is in the gantry's travel along Y.
 - **With the stronger shake Y shows its real resonance:** one clean peak at 40.9 Hz, best fit mzv 42.0 Hz with no residual vibration. That is within 1 Hz of thebrain's Y (41.9 Hz).
-- Raising the motor current would shrink the lost motion, but the drivers are at their 1.4 A limit and the main board already reads 87°C. Reducing the friction is the fix.
+- Raising the motor current would shrink the lost motion, but the config notes 1.4 A as these drivers' limit and the main board already reads 87°C. Reducing the friction is the fix.
 
 The raw sweep files are in `~/resonance-2026-11-23/` on the host.
 
