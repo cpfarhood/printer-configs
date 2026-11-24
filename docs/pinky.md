@@ -301,6 +301,23 @@ Residual vibration each candidate leaves, by sweep:
 
 Raw files: `~/resonance-2026-11-24-check4/` on the host. `~/shaper_eval.py` scores named shapers against raw sweeps.
 
+### Y sticking by position, same day
+
+Fifth run, at the owner's request; what was changed beforehand was not described. Bed centre was unchanged from the previous check. The same 40-second Y sweep (`accel_per_hz: 50`) was then run at five places along Y, all at X 185, using `POINT=`.
+
+| Size of the move | Y 60 (front) | Y 120 | Y 185 (centre) | Y 185 repeat | Y 250 | Y 310 (back) |
+|---|---|---|---|---|---|---|
+| ±0.070 mm | 0.51 | 0.41 | 0.54 | 0.67 | 0.92 | 0.88 |
+| ±0.058 mm | 0.39 | 0.31 | 0.24 | 0.25 | 0.60 | 0.61 |
+| ±0.049 mm | 0.47 | 0.30 | 0.15 | 0.11 | 0.25 | 0.50 |
+| ±0.042 mm | 0.38 | 0.17 | 0.11 | 0.10 | 0.14 | 0.32 |
+
+- **The sticking depends on where the gantry is.** It is worst in the middle of Y's travel and eases towards both ends, more at the back. The centre repeat, run last, matched the first centre run, so this is position and not warming up or run order.
+- **Two explanations fit and this data cannot separate them.** Either the two Y rails pinch the gantry most in the middle of their length, or the friction is even and the belts, which are longest and most elastic between motor and gantry near mid-travel, let the motors wind up further there. The current test on 2026-11-23 puts roughly 40% of the wind-up in something that does not change with motor current, which could be the belts.
+- **Deciding test, by hand:** slip the belts off the motor pulleys and push the gantry through its whole Y travel from one end of the beam. Tighter in the middle means the rails; even drag means the rails are not where the variation comes from.
+
+Raw files: `~/resonance-2026-11-24-check5/` on the host.
+
 ## Open items
 
 - **Intermittent `Communication timeout during homing`.** `multi_mcu_trsync_timeout` is raised to 0.05 s in `printer-pinky.cfg` as a mitigation; see "Homing timeout" above. It was pulled and confirmed active (0.05) on 2026-11-23, on Kalico. Not yet shown to work: the fault is rare, so it needs a run of print starts without one. The causes behind it are still open: the main board's serial link corrupts data while the heaters are on, and the LED updates fail in bursts.
