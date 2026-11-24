@@ -250,13 +250,32 @@ Y tracking at the configured `accel_per_hz: 50`:
 
 Raw files: `~/resonance-2026-11-24-loose/` on the host.
 
+### Belts re-tensioned, same day
+
+The owner set the belts again before touching the rails, so that lubrication can be tested as the only change. Same method as above.
+
+| Size of the move (Y, `accel_per_hz: 50`) | As found | Loosened | Re-tensioned |
+|---|---|---|---|
+| ±0.079 mm (16 Hz) | 0.65 | 1.01 | 0.63 |
+| ±0.070 mm (18 Hz) | 0.64 | 1.14 | 0.46 |
+| ±0.063 mm (20 Hz) | 0.34 | 0.92 | 0.29 |
+| ±0.058 mm (22 Hz) | 0.22 | 1.04 | 0.16 |
+| ±0.049 mm (26 Hz) | 0.12 | 0.99 | 0.10 |
+
+- **Y is back where it started, slightly worse.** Tracking falls to half at about ±0.07 mm. This is the baseline for the lubrication test.
+- **Y's resonance cannot be measured at this tension, even with `ACCEL_PER_HZ=100`.** Y follows up to 30 Hz (1.07), then stops (0.32 at 35 Hz, 0.17 at 40 Hz), just below where the resonance sits. On 2026-11-23 the same sweep carried through (2.17 and 4.46). No Y shaper value can be given; the saved mzv 42.0 Hz is from the as-found tension.
+- **X now shows one peak, 57.7 Hz** (best fit mzv 57.4 Hz), where it showed two (57.7 and 63.7 Hz) as found. On thebrain a double X peak went with unequal belts, so the belts are probably more even now. The diagonal sweeps were not run: with Y sticking above 30 Hz they cannot show belt balance. Saved X is still mzv 63.2 Hz.
+- No belt teeth skipped. X's home position moved by about 0.45 mm between two homings either side of the sweeps (0.05 mm in the check before them); not investigated.
+
+Raw files: `~/resonance-2026-11-24-retension/` on the host.
+
 ## Open items
 
 - **Intermittent `Communication timeout during homing`.** `multi_mcu_trsync_timeout` is raised to 0.05 s in `printer-pinky.cfg` as a mitigation; see "Homing timeout" above. It was pulled and confirmed active (0.05) on 2026-11-23, on Kalico. Not yet shown to work: the fault is rare, so it needs a run of print starts without one. The causes behind it are still open: the main board's serial link corrupts data while the heaters are on, and the LED updates fail in bursts.
 - **Main board temperature.** The board's own sensor reads 85–88°C in every session long enough to warm up, in 2025 and now, and reaches it within 15 minutes with only the motors energised. Check that the case fan spins and actually blows across the drivers.
 - Neopixel update errors, as on thebrain: about 4,500 in the first 45 minutes of the day. Each one is eight failed attempts by the main board.
 - `switch_offset` was tuned for the old probe; check the first layer.
-- **Y does not follow small moves.** Below about ±0.06 mm the gantry stays put, because the motors wind up against friction in Y before it moves; see "Resonance, 2026-11-23". Belt tension is one cause: with both belts loosened on 2026-11-24 the cut-off fell from about ±0.065 mm to about ±0.04 mm (see "Belts loosened"). The rest is unexplained; candidates are the Y rails and the X beam out of square on its carriages. The belts are still loose and need setting again; use the 40-second Y sweep (`FREQ_START=5 FREQ_END=45`) to find how tight they can go before Y starts to bind, then re-measure both shapers.
+- **Y does not follow small moves.** Below about ±0.06 mm the gantry stays put, because the motors wind up against friction in Y before it moves; see "Resonance, 2026-11-23". Belt tension is one cause: with both belts loosened on 2026-11-24 the cut-off fell from about ±0.065 mm to about ±0.04 mm (see "Belts loosened"). The rest is unexplained; candidates are the Y rails and the X beam out of square on its carriages. The belts were re-tensioned the same day and Y went back to its as-found state (see "Belts re-tensioned"). Next: clean and lubricate the Y rails at this tension and repeat the 40-second Y sweep (`FREQ_START=5 FREQ_END=45`). Both shapers need re-measuring once Y follows; no valid Y value exists for the present tension.
 - **The saved Y shaper was wrong and is now corrected.** It was 104.4 Hz, which left Y with effectively no input shaping; the measured resonance is 40.9 Hz and the host now has mzv 42.0 Hz (2026-11-24). Check Y ringing on the first real print. The fit's suggested acceleration limit is about 5200, above the configured `max_accel` of 5000.
 - `accel_per_hz: 50` in `[resonance_tester]` is too gentle for Y on this machine. Use `ACCEL_PER_HZ=100` on the command until the config is changed.
 - The config also carries thebrain's open macro items: the dead `COMPUTE_MESH_PARAMETERS` and `DOCK_PROBE` calls, and `off_below`.
