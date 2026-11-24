@@ -2,7 +2,7 @@
 
 ZeroG Mercury One conversion of an Ender 5 Plus. Sibling of [thebrain](thebrain.md) and built from the same shared files.
 
-**Status, 2026-11-23:** powered on for the first time since March 2025, probe replaced, and moved to Kalico the same day. Homing, probing, Z calibration and a no-extrusion print all pass. It has not printed with filament yet.
+**Status, 2026-11-23:** powered on for the first time since March 2025, probe replaced, and moved to Kalico the same day. Homing, probing, Z calibration and a no-extrusion print all pass. It has not printed with filament yet. An intermittent homing timeout stopped one print start before the move; see "Open items".
 
 ## Host and software
 
