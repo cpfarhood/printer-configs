@@ -64,7 +64,7 @@ The stepper file is the main hardware difference from thebrain:
 | `[dockable_probe] z_offset` | 7.260 |
 | Saved `default` bed mesh | 7×7 over 20…330, range about 0.30 mm, centre high |
 
-The Y shaper value is worth re-measuring. thebrain's Y resonates at about 42 Hz, but its motors are different, so that is only a rough guide. A fit as high as 104 Hz is also what a sweep with no clear peak produces, which is what thebrain's Y sweep looked like on 2026-11-23 when its gantry stopped following small moves.
+The Y value is not a real resonance. See "Resonance, 2026-11-23": Y does not follow the small moves a sweep uses, so the fit has nothing to work with.
 
 ### Differences from thebrain in the machine file
 
@@ -165,13 +165,46 @@ Per-session link counters from the Klipper logs:
 
 Change made: `multi_mcu_trsync_timeout: 0.05` in `printer-pinky.cfg`. That is long enough to ride out one resend or one late message. The cost is that if a board really does stop answering during a homing or probing move, the motors run for up to 0.05 s instead of 0.025 s before stopping: 0.25 mm at the 5 mm/s probing speed, 6 mm at the 120 mm/s X homing speed.
 
+## Resonance, 2026-11-23
+
+Measured on Kalico with the toolhead accelerometer at bed centre: sweeps along X, along Y, and along each diagonal (one belt at a time). The accelerometer's axes are not mapped in the config: the chip's X is vertical, its Y is the toolhead's X and its Z is the toolhead's Y, the same as on thebrain.
+
+| Sweep | Peaks | Best fit |
+|---|---|---|
+| X | 57.7 and 63.7 Hz | mzv 61.0 Hz, no residual vibration |
+| Y | 18, 62, 93 and 103 Hz, none dominant | Nothing fits: every shaper leaves 15–37% |
+| Diagonal, one belt | 57.6 and 63.6 Hz | mzv 60.0 Hz |
+| Diagonal, other belt | 57.6 and 63.6 Hz | mzv 61.0 Hz |
+
+- **X is healthy.** The saved value (mzv 63.2 Hz) is within 2 Hz of the new fit and was left alone.
+- **The belts match.** Both diagonals show the same two peaks.
+- **Y does not follow small moves.** The table below compares the acceleration measured at the drive frequency with the acceleration commanded, at the moment the sweep passes each frequency.
+
+| Drive | Commanded stroke | X follows | Y follows |
+|---|---|---|---|
+| 8 Hz | ±0.16 mm | 1.08 | 1.12 |
+| 11 Hz | ±0.12 mm | 1.20 | 1.41 |
+| 18 Hz | ±0.07 mm | 0.96 | 0.83 |
+| 20 Hz | ±0.06 mm | 1.01 | 0.47 |
+| 22 Hz | ±0.06 mm | 1.02 | 0.23 |
+| 30 Hz | ±0.04 mm | 1.04 | 0.10 |
+| 40 Hz | ±0.03 mm | 1.28 | 0.09 |
+| 60 Hz | ±0.02 mm | 3.82 (resonance) | 0.32 |
+
+- X tracks at 1.0 and then rises into its resonance, as a rigid axis should. Y tracks down to a stroke of about ±0.07 mm and then stops moving: something takes up roughly 0.05 mm before the gantry shifts.
+- On the diagonal sweeps the X part of the motion follows and the Y part does not, whichever belt is driving. That rules out one motor, one pulley or one belt, and points at the gantry's travel along Y: the Y rails, or the X beam sitting out of square on its carriages.
+- This is the same pattern thebrain showed on 2026-11-23 after its belts were adjusted (0.86, 0.30, 0.10 at 11, 21 and 30 Hz). The saved 104.4 Hz Y value dates from before March 2025, so pinky has probably been like this for a long time, and it completed 567 jobs that way.
+- What it costs in prints: Y detail finer than about 0.05 mm is lost, and Y has no usable input shaping.
+
+The raw sweep files are in `~/resonance-2026-11-23/` on the host.
+
 ## Open items
 
-- **Intermittent `Communication timeout during homing`.** `multi_mcu_trsync_timeout` is raised to 0.05 s in `printer-pinky.cfg` as a mitigation; see "Homing timeout" above. Not yet shown to work: the fault is rare, so it needs a run of print starts without one. The causes behind it are still open: the main board's serial link corrupts data while the heaters are on, and the LED updates fail in bursts.
+- **Intermittent `Communication timeout during homing`.** `multi_mcu_trsync_timeout` is raised to 0.05 s in `printer-pinky.cfg` as a mitigation; see "Homing timeout" above. It was pulled and confirmed active (0.05) on 2026-11-23, on Kalico. Not yet shown to work: the fault is rare, so it needs a run of print starts without one. The causes behind it are still open: the main board's serial link corrupts data while the heaters are on, and the LED updates fail in bursts.
 - **Main board temperature.** The board's own sensor reads 85–88°C in every session long enough to warm up, in 2025 and now, and reaches it within 15 minutes with only the motors energised. Check that the case fan spins and actually blows across the drivers.
 - Neopixel update errors, as on thebrain: about 4,500 in the first 45 minutes of the day. Each one is eight failed attempts by the main board.
 - `switch_offset` was tuned for the old probe; check the first layer.
-- Saved Y input shaper value (104.4 Hz) needs re-measuring.
+- **Y does not follow small moves.** Below about ±0.06 mm the gantry stays put; see "Resonance, 2026-11-23". The saved Y shaper (104.4 Hz) is meaningless until that is fixed, and no better value can be measured. Look at the Y rails and the squareness of the X beam on its carriages.
 - The config also carries thebrain's open macro items: the dead `COMPUTE_MESH_PARAMETERS` and `DOCK_PROBE` calls, and `off_below`.
 
 ## Before powering on
@@ -184,7 +217,6 @@ Change made: `multi_mcu_trsync_timeout: 0.05` in `printer-pinky.cfg`. That is lo
 
 - Where the probe pin runs off the plate on the right and back edges, before any full mesh.
 - Probe repeatability, gantry tilt convergence and Z calibration repeatability, as measured on thebrain.
-- Resonance on X, Y and each belt diagonal, including whether Y follows small moves at all (see thebrain's 2026-11-23 notes).
 - Which motors and boards are actually fitted.
 
 ## Kalico migration, 2026-11-23
@@ -253,5 +285,5 @@ To roll back:
 - The bed started this session about 0.56 mm low at the centre but nearly level (0.04 mm across the tilt points), where the two earlier power-ons had found it 0.82–0.87 mm out of level. So what the bed does while the Z motors are off is not the same every time.
 - The serial link noise, the LED update failures and the board temperature are unchanged by the migration. They are hardware or wiring matters.
 - A false emergency stop happened during testing, and it was the test script's fault: the Z watchdog was run around a `G28` on an unhomed printer, where the reported Z is meaningless. The watchdog now ignores Z until it is homed. A firmware restart cleared it.
-- Not yet done on Kalico here: resonance sweeps, a real print, a pause held past the idle timeout, and an unused printer powering itself off.
+- Not yet done on Kalico here: a real print, a pause held past the idle timeout, and an unused printer powering itself off.
 

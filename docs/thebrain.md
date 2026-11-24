@@ -222,6 +222,8 @@ What the owner found by hand, motors off:
 
 Working theory, not confirmed: the first adjustment pulled the gantry out of square on its Y carriages, and the carriages now bind until the belts have wound up enough force to free them. Next check: slacken both belts fully and see whether the gantry glides and sits square. If it does not, square the beam on its carriages before re-tensioning.
 
+pinky, measured the same day and not touched mechanically, shows the same pattern on Y (0.83 at 18 Hz, 0.23 at 22 Hz, 0.10 at 30 Hz) with a healthy X; see [its notes](pinky.md#resonance-2026-11-23). Its saved Y shaper suggests it has been that way for years. So this may be a state this frame design falls into easily, not damage peculiar to thebrain.
+
 Also learned that morning:
 
 - An idle printer that reaches the 10-minute timeout runs `M84` and turns the part fan on full. A command sent seconds later homes normally but leaves the fan at 100%. Turn it off before a resonance test.
