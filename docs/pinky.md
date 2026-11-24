@@ -193,7 +193,7 @@ Measured on Kalico with the toolhead accelerometer at bed centre: sweeps along X
 
 - X tracks at 1.0 and then rises into its resonance, as a rigid axis should. Y tracks down to a stroke of about ±0.07 mm and then stops moving: something takes up roughly 0.05 mm before the gantry shifts.
 - On the diagonal sweeps the X part of the motion follows and the Y part does not, whichever belt is driving. That rules out one motor, one pulley or one belt, and points at the gantry's travel along Y: the Y rails, or the X beam sitting out of square on its carriages.
-- This is the same pattern thebrain showed on 2026-11-23 after its belts were adjusted (0.86, 0.30, 0.10 at 11, 21 and 30 Hz). The saved 104.4 Hz Y value dates from before March 2025, so pinky has probably been like this for a long time, and it completed 567 jobs that way.
+- This is the same pattern thebrain showed on 2026-11-23 after its belts were adjusted (0.86, 0.30, 0.10 at 11, 21 and 30 Hz). The saved 104.4 Hz Y value dates from before March 2025, so pinky has probably been like this for a long time, through much of its 567 jobs.
 - What it costs in prints: Y detail finer than about 0.05 mm is lost, and Y has no usable input shaping.
 
 The raw sweep files are in `~/resonance-2026-11-23/` on the host.
