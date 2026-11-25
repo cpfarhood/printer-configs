@@ -1,8 +1,8 @@
 # thebrain
 
-An Ender 5 Plus converted to a ZeroG Mercury One (CoreXY), then customised further. Last inspected live on 2026-11-22, the day it moved from Danger Klipper to Kalico.
+An Ender 5 Plus converted to a ZeroG Mercury One (CoreXY), then customised further. Moved from Danger Klipper to Kalico on 2026-11-22. Last inspected live on 2026-11-24.
 
-**Out of service since 2026-11-23** while a mechanical problem in the Y axis is tracked down. See "2026-11-23: Y stopped following small moves" under Incidents. Do not rely on the resonance or belt figures below until that is resolved.
+**Status, 2026-11-24:** in service. New belts and adjusted, lubricated rails went on that day after a Y-axis fault on 2026-11-23, the shapers were re-saved for the new belts, and the baseline cube printed with the same time and filament as on 2026-11-22. See "Incidents".
 
 ## Hardware
 
@@ -63,7 +63,7 @@ These sit in the `SAVE_CONFIG` block of the host's `printer.cfg` and are not in 
 |---|---|
 | `[extruder]` PID | kp 19.970, ki 1.022, kd 97.602 |
 | `[heater_bed]` PID | kp 56.711, ki 0.863, kd 931.480 |
-| `[input_shaper]` | X mzv 59.2 Hz, Y mzv 43.2 Hz |
+| `[input_shaper]` | X mzv 66.0 Hz, Y mzv 46.0 Hz (59.2 and 43.2 Hz until 2026-11-24, on the old belts) |
 | `[stepper_z]` | `position_endstop` 7.846 |
 | `[dockable_probe]` | `z_offset` 8.110 |
 | `[bed_mesh default]` | A stale 3×3 adaptive mesh over 155–214 mm. Not used by prints. |
@@ -166,6 +166,8 @@ The plate is a dome: centre high, corners 0.4–0.5 mm low. A mesh at 50°C over
 
 The saved shaper values still fit. The lower belt resonates lower than the upper, which points to it being looser and matches the double peak on X.
 
+These figures are for the old belts. The new belts' figures are under "2026-11-23 and 24: Y fault, new belts".
+
 ## Tests of the 2026-11-22 config changes
 
 Run on the machine the same day, after the changes were pulled. The pause and cancel tests used a no-extrusion air print at 190/50°C.
@@ -196,37 +198,35 @@ The test file `audit_airprint.gcode` is still in the host's gcode folder and can
 
 ## Incidents
 
-### 2026-11-23: Y stopped following small moves (open)
+### 2026-11-23 and 24: Y fault, new belts
 
-The owner tightened the lower belt to even out the two belts. The sweeps run afterwards showed a new fault, and the printer was taken out of service to work on it.
+**What happened.** On 2026-11-23 the owner tightened the lower belt to even out the two belts. The next sweeps showed Y no longer following moves smaller than about ±0.1 mm, and its 42 Hz resonance gone; X was unaffected. Loosening and re-tightening both belts changed nothing. By hand the owner found a tight-loose pulse about once per motor turn and the gantry 0.5–1 mm out of square at the back. The printer came back on 2026-11-24 with new belts and adjusted, lubricated rails.
 
-What the accelerometer showed, as the share of each commanded shake that reached the toolhead in Y (1.0 = follows exactly):
+Share of each commanded Y move that reached the toolhead at bed centre, at the configured `accel_per_hz: 50` (1.0 = follows). The first two columns came from an older script, so compare them loosely.
 
-| Shake frequency | Size of the move | 2026-11-22 | After tightening | After both belts were reset |
-|---|---|---|---|---|
-| 11 Hz | about 0.12 mm | 1.15 | 0.93 | 0.86 |
-| 21 Hz | about 0.06 mm | 0.78 | 0.24 | 0.30 |
-| 30 Hz | about 0.04 mm | 1.20 | 0.09 | 0.10 |
-| 40 Hz | about 0.03 mm | 4.90 (the resonance) | not tracked | 0.10 |
+| Size of the move | 2026-11-22 | 2026-11-23, fault | 2026-11-24, new belts |
+|---|---|---|---|
+| ±0.115 mm (11 Hz) | 1.15 | 0.86 | 1.40 |
+| ±0.060 mm (21 Hz) | 0.78 | 0.30 | 0.78 |
+| ±0.042 mm (30 Hz) | 1.20 | 0.10 | 0.72 |
+| ±0.036 mm (35 Hz) | not recorded | not recorded | 0.20 |
+| ±0.032 mm (40 Hz) | 4.90 (the resonance) | 0.10 | 0.20 |
 
-- Y follows moves larger than about 0.1 mm and ignores reversals smaller than about 0.05 mm: roughly 0.1 mm of lost motion. The old 42 Hz Y resonance is simply absent, at the front, middle and back of the bed alike.
-- X is unaffected. It now shows one main peak at 62.3 Hz and fits `mzv` at 62.8 Hz (saved: 59.2). Not saved.
-- The Y component is also missing from both single-belt sweeps, so those sweeps now look alike whatever the belts are doing. **They cannot be used to judge belt balance while Y is stuck.**
-- The response is never amplified at any frequency, so this is not a softer, lower resonance. A slipping pulley would show in X as well. The raw data has no knocking in it, which argues for binding over a loose part.
-- Loosening and re-tightening both belts together changed nothing, so it does not depend on the present belt settings.
+- **Y follows again down to about ±0.04 mm.** Below that it does not. This is normal for these machines and is explained in [mercury-one-motion.md](mercury-one-motion.md). A second session the same day repeated point for point.
+- **What fixed it is not known in detail.** Belts, rail adjustment and lubrication were all changed together.
+- **Resonances on the new belts:** Y one peak at 45.2 Hz (41.7 Hz on the old belts), measured with `ACCEL_PER_HZ=100`. X a main peak at 65.4 Hz with a small one at 56.1 Hz.
+- **The belts are balanced.** Diagonal sweeps at `ACCEL_PER_HZ=120`: `AXIS=1,1` peaks at 45.3, 54.7 and 67.2 Hz; `AXIS=1,-1` at 45.2, 54.6 and 65.5 Hz. On the old belts the two read 54.0 and 63.3 Hz.
+- **Shapers saved:** X mzv 66.0 Hz and Y mzv 46.0 Hz, each leaving 0.0% residual vibration on both of the day's sweeps. The old values still fitted (59.2 Hz left 1.1–1.5%, 43.2 Hz left 0.0%), so the gain is less smoothing. Previous file on the host: `printer-20261124_231109.cfg`.
+- **Fast-move test, no filament:** 3 loops at 150 mm/s and 2500 mm/s², then 5 loops at 300 mm/s and 5000 mm/s², re-homing after each stage. Home moved by 0.07 mm of belt at most (one tooth is 2 mm): no skipped teeth.
+- **First start sequence after the rebuild:** Z homed on the pin, the tilt adjust converged in two or three passes (first correction 1.8 mm), and Z calibration and the adaptive mesh ran, on three print starts.
 
-What the owner found by hand, motors off:
+**Baseline cube, 2026-11-24.** `cube_kalico.gcode`, the file from 2026-11-22: completed in 1554 s of printing with 1937 mm of filament, the same as on 2026-11-22. Owner's verdict while it printed: looks good. Main board 42°C and toolhead board 55°C at the end; no communication errors.
 
-- A tight-loose pulse about once per motor turn (40 mm of travel), felt both front-back and along the gantry. That points at an off-centre pulley or idler in a belt path. It may predate the belt work.
-- With the right end of the gantry against the back, the left end sits 0.5–1 mm short.
+**First real part, same evening.** A 200 mm PETG spool adapter sent by the owner (230/75°C, 27 layers) completed in 1647 s of printing against the slicer's 1622 s estimate, with 2310 mm of filament. The start sequence levelled the bed in three passes, calibrated Z (offset 0.482 mm) and probed a 5×5 adaptive mesh over 85–285 mm on both axes. No errors; main board 42°C.
 
-Working theory, not confirmed: the first adjustment pulled the gantry out of square on its Y carriages, and the carriages now bind until the belts have wound up enough force to free them. Next check: slacken both belts fully and see whether the gantry glides and sits square. If it does not, square the beam on its carriages before re-tensioning.
+Two earlier attempts that evening were cancelled by the owner because the extruder was not gripping the filament. The cause was the grub screw on the extruder's drive gear, which the owner re-tightened. Spare extruder parts are on hand.
 
-Also learned that morning:
-
-- An idle printer that reaches the 10-minute timeout runs `M84` and turns the part fan on full. A command sent seconds later homes normally but leaves the fan at 100%. Turn it off before a resonance test.
-- Kalico's `TEST_RESONANCES` takes `FREQ_START`, `FREQ_END` and `POINT`, so a 20–60 Hz Y check takes 40 seconds.
-- The accelerometer's axes are not mapped: its X is vertical, its Y is the toolhead's X, and its Z is the toolhead's Y. The shaper fit does not care, but any per-direction reading of the raw data does.
+Raw sweeps are on the host in `~/resonance-2026-11-24/` and `~/resonance-2026-11-24b/`.
 
 ### 2026-11-22: false emergency stop during testing
 
@@ -331,15 +331,16 @@ Ordered roughly by value. None of these are done.
 **First-layer consistency**
 
 - `PRINT_START` heats the nozzle to full print temperature before `CALIBRATE_Z`, and the nozzle touch is the noisiest part of that measurement. With a cold nozzle the touch varied 0.006 mm over three runs, against 0.018 mm hot. Probe at about 150°C, then heat.
-- `switch_offset` was hand-tuned about a dozen times between October 2024 and January 2026, in a band from 0.485 to 0.585. Back-to-back calibrations differ by about 0.024 mm, so steps of 0.01–0.02 are inside the noise.
+- `switch_offset` was hand-tuned about a dozen times between October 2024 and January 2026, in a band from 0.485 to 0.585. Back-to-back calibrations differ by about 0.024 mm, so steps of 0.01–0.02 are inside the noise. On 2026-11-24 three print starts within 40 minutes gave offsets of 0.477, 0.432 and 0.458 mm, a spread of 0.045 mm.
 - Z homes at 20 mm/s onto the nozzle pin. Slower would likely tighten the 0.019 mm spread.
 - Mesh fade is off, so the 0.58 mm dome is carried through the full height of every print. `fade_start: 1`, `fade_end: 10` would stop that.
 - `z_tilt` `z_positions` are -30 and 380 (410 mm apart). The 85%-per-pass convergence implies the real pivots are about 470–490 mm apart. Measure them; correct values should converge in two passes.
 
 **Motion**
 
-- Find and fix the Y lost motion (see Incidents, 2026-11-23), then even out the belts and re-run the shaper. Before the belt work the lower belt read 54 Hz and the upper 63 Hz.
-- A pulley or idler runs off-centre: belt tension pulses once per motor turn.
+- Y ignores moves under about ±0.04 mm. That is this machine's normal and it prints well; re-run the 40-second Y sweep after any belt or rail work and compare (see [mercury-one-motion.md](mercury-one-motion.md)).
+- A pulley or idler ran off-centre on the old belts (tension pulsed once per motor turn). Not re-checked since the new belts.
+- The extruder's drive-gear grub screw worked loose on 2026-11-24. Check it if extrusion thins out.
 - Calibrate pressure advance.
 - The slicer profile prints at 750–1500 mm/s² against a machine limit of 5000. The shaper results support about 5000.
 - Neopixel update errors. Try a newer `led_effect` and a lower frame rate than 24 fps.
@@ -348,6 +349,7 @@ Ordered roughly by value. None of these are done.
 
 - Remove the dead `COMPUTE_MESH_PARAMETERS` call from `PRINT_START` and `DOCK_PROBE` from `[z_calibration] end_gcode`. Both only print "Unknown command". The probe docks itself after `CALIBRATE_Z`.
 - `LOAD_FILAMENT` extrudes 75 mm before waiting for temperature, so it fails below 175°C.
+- `PRINT_START` and `PRINT_END` each retract 10 mm, and Mainsail retracts 5 mm on a cancel. That is a lot for a direct-drive extruder and can pull molten plastic into the cold part of the hotend, more so after cancelled prints in a row. Consider 1–2 mm.
 - The frame file rewrites all saved variables at every boot, and `_Printer_Variables` duplicates most of them. One mechanism should go.
 - `variable_use_custom_pos.` has a stray period, and `max_extrude_only_distance` is set twice in the toolhead file.
 
@@ -367,6 +369,7 @@ Ordered roughly by value. None of these are done.
 ## Working on this printer safely
 
 - Any probing outside the proven area should run under a watchdog that polls `motion_report.live_position` and sends Moonraker's emergency stop if Z drops below about 5 mm during a probe move. Probes normally trigger near Z 8. The watchdog must ignore all-zero readings and wait for two low readings in a row; see "Things to know from the day".
+- `dockable_probe.last_status` reads 0 (unknown) on this machine during probing and printing alike, so a watchdog cannot use it to tell the two apart. Use the file position: it stays on the `PRINT_START` line until probing is over.
 - Check that the bed is clear before homing. Raise the bed to about Z45 and the camera can see the plate.
 - A no-extrusion "air print" is a cheap way to exercise `PRINT_START`, pause, resume and cancel: define one exclude-object near the bed centre, call `print_start`, then loop a square at Z20.
 

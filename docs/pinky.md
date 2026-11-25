@@ -2,7 +2,7 @@
 
 ZeroG Mercury One conversion of an Ender 5 Plus. Sibling of [thebrain](thebrain.md) and built from the same shared files.
 
-**Status, 2026-11-23:** powered on for the first time since March 2025, probe replaced, and moved to Kalico the same day. Homing, probing, Z calibration and a no-extrusion print all pass. It has not printed with filament yet. An intermittent homing timeout stopped one print start before the move; see "Open items".
+**Status, 2026-11-24:** on Kalico with a new probe. Homing, probing, Z calibration and a no-extrusion print all pass. It has not printed with filament since March 2025. The owner shelved it on 2026-11-24 with two things unresolved: its Y axis ignores moves under about ±0.07 mm, and its main board runs at 85–88°C. See "Open items".
 
 ## Host and software
 
@@ -19,18 +19,7 @@ ZeroG Mercury One conversion of an Ender 5 Plus. Sibling of [thebrain](thebrain.
 
 Moonraker took about four and a half minutes after boot to start answering. Until then Mainsail loads but shows a gateway error.
 
-### This checkout is behind
-
-The config repo on the host is at `c91d0d1` (2025-02-26), 23 commits behind `master`. **None of the 2026-11-22 changes are on the machine yet.** Neither `moonraker.conf` nor its shared include has an `update_manager` entry for this repo, so it only updates by a manual `git pull`.
-
-Until it is pulled, pinky still has:
-
-- `stepper_z position_min: -15`, the setting that let a missed probe drive thebrain's bed into its toolhead.
-- `bed_mesh mesh_max: 377,350`.
-- The old `PAUSE`, `RESUME` and `CANCEL_PRINT` overrides in `macros-common.cfg`, and the old idle timeout that abandons a paused print.
-- Hotend `max_temp` 310.
-
-After a pull it gets the fixed versions of all of these. They were proven on thebrain's bed and macros, not on pinky's.
+The config checkout on the host has been at `master` since 2026-11-23. Neither `moonraker.conf` nor its shared include has an `update_manager` entry for this repo, so it only updates by a manual `git pull`.
 
 ## Config
 
@@ -59,12 +48,12 @@ The stepper file is the main hardware difference from thebrain:
 |---|---|
 | `[extruder]` PID | kp 18.115, ki 0.693, kd 118.312 |
 | `[heater_bed]` PID | kp 50.732, ki 0.505, kd 1274.653 |
-| `[input_shaper]` | X mzv 63.2 Hz, Y mzv 104.4 Hz |
+| `[input_shaper]` | X mzv 61.0 Hz, Y ei 42.4 Hz (X mzv 63.2 Hz and Y mzv 104.4 Hz until 2026-11-24) |
 | `[stepper_z] position_endstop` | 4.796 |
 | `[dockable_probe] z_offset` | 7.260 |
 | Saved `default` bed mesh | 7×7 over 20…330, range about 0.30 mm, centre high |
 
-The Y shaper value is worth re-measuring. thebrain's Y resonates at about 42 Hz, but its motors are different, so that is only a rough guide. A fit as high as 104 Hz is also what a sweep with no clear peak produces, which is what thebrain's Y sweep looked like on 2026-11-23 when its gantry stopped following small moves.
+Both shaper values were re-measured on 2026-11-24; see "Resonance and Y motion". The old Y value was not a real resonance. They were written into the saved block of `printer.cfg` by hand, and the earlier files are kept beside it as `printer-20261124_*.cfg`. No print has run with them.
 
 ### Differences from thebrain in the machine file
 
@@ -72,8 +61,8 @@ The Y shaper value is worth re-measuring. thebrain's Y resonates at about 42 Hz,
 |---|---|---|
 | `dockable_probe` dock / approach X | 209 | 210.5 |
 | `z_calibration switch_offset` | 0.470 | 0.525 |
-| `startupinit` | True | False |
-| `lowerbedoncancel`, `STARTUP_IDLE` block | absent | present |
+| `multi_mcu_trsync_timeout` | 0.05 | default (0.025) |
+| `lowerbedoncancel` | absent | present |
 | LED colours | purple | red |
 
 ## History
@@ -165,27 +154,59 @@ Per-session link counters from the Klipper logs:
 
 Change made: `multi_mcu_trsync_timeout: 0.05` in `printer-pinky.cfg`. That is long enough to ride out one resend or one late message. The cost is that if a board really does stop answering during a homing or probing move, the motors run for up to 0.05 s instead of 0.025 s before stopping: 0.25 mm at the 5 mm/s probing speed, 6 mm at the 120 mm/s X homing speed.
 
+## Resonance and Y motion, 2026-11-23 and 24
+
+Measured on Kalico with the toolhead accelerometer. The method, and what the Y results mean for both Mercury machines, are in [mercury-one-motion.md](mercury-one-motion.md). pinky was not printing at the time, so none of this has been checked against a part.
+
+**Y ignores small moves.** At the configured test strength Y stops following once the commanded move falls below about ±0.07 mm, because the motors wind up against friction in Y before the gantry shifts. X follows every move tested. Share of each commanded Y move that reached the toolhead at bed centre (1.0 = follows):
+
+| Size of the move | As found, 2026-11-23 | Belts loosened "a lot" | Belts tightened again |
+|---|---|---|---|
+| ±0.079 mm | 0.65 | 1.01 | 0.63 |
+| ±0.070 mm | 0.64 | 1.14 | 0.46 |
+| ±0.063 mm | 0.34 | 0.92 | 0.29 |
+| ±0.058 mm | 0.22 | 1.04 | 0.16 |
+| ±0.049 mm | 0.12 | 0.99 | 0.10 |
+| ±0.042 mm | 0.09 | 0.63 | 0.09 |
+
+- **Belt tension matters.** Loosening the belts moved the cut-off from about ±0.065 mm to about ±0.04 mm; tightening them put it back. Two later checks, after changes the owner did not describe, matched the tightened column.
+- **Motor current matters.** With the X/Y current lowered and then restored, the cut-off was ±0.065 mm at 1.35 A, ±0.08 mm at 1.0 A and about ±0.10 mm at 0.7 A. X at 0.7 A still followed.
+- **Position matters.** With the belts tight, the same sweep at five places along Y (X 185) gave, at ±0.058 mm: 0.39 at Y 60, 0.31 at Y 120, 0.24 at Y 185, 0.60 at Y 250 and 0.61 at Y 310. The sticking is worst mid-travel. A repeat at the centre matched.
+- **Cause not found.** The friction is specific to the gantry's travel along Y. Rail alignment, beam squareness and lubrication were discussed and not settled.
+
+**Resonances and saved shapers.**
+
+| Axis | Peaks seen | Saved on 2026-11-24 | Residual vibration |
+|---|---|---|---|
+| X | 57.7 and 63.7 Hz together, then each alone, across three full sweeps | mzv 61.0 Hz (was 63.2) | 0.0–1.8% across the three |
+| Y | 40.9 Hz as found, 38.0 Hz with loose belts, about 45.5 Hz with tight belts | ei 42.4 Hz (was mzv 104.4) | 0.0–1.2% across the three |
+
+- Y's resonance only shows with a stronger shake than the config uses: `ACCEL_PER_HZ=100` as found and with loose belts, 150 with tight belts. The tight-belt measurement is rough, because Y half sticks at 35 Hz even then.
+- `ei` on Y smooths more than `mzv`. Its fit suggests keeping acceleration at or below about 3300, and `max_accel` is 5000, so Y corners may come out slightly rounder. With looser belts, mzv near 40 Hz fits again.
+- Belt balance was never measured. The diagonal sweeps were only run at the configured strength, where they just show X's peaks.
+
+**Fast-move test, no filament, belts tight:** 3 loops at 150 mm/s and 2500 mm/s², then 5 loops at 300 mm/s and 5000 mm/s², re-homing after each stage. The home position moved by 0.08 mm of belt at most, and one tooth is 2 mm, so no teeth skipped. The loose setting did not get this test.
+
+X's home position moved by 0.3–0.45 mm between some pairs of homings and by under 0.1 mm between others. Not investigated.
+
+Raw sweeps are on the host in `~/resonance-2026-11-23/` and `~/resonance-2026-11-24-*/`.
+
 ## Open items
 
-- **Intermittent `Communication timeout during homing`.** `multi_mcu_trsync_timeout` is raised to 0.05 s in `printer-pinky.cfg` as a mitigation; see "Homing timeout" above. Not yet shown to work: the fault is rare, so it needs a run of print starts without one. The causes behind it are still open: the main board's serial link corrupts data while the heaters are on, and the LED updates fail in bursts.
-- **Main board temperature.** The board's own sensor reads 85–88°C in every session long enough to warm up, in 2025 and now, and reaches it within 15 minutes with only the motors energised. Check that the case fan spins and actually blows across the drivers.
-- Neopixel update errors, as on thebrain: about 4,500 in the first 45 minutes of the day. Each one is eight failed attempts by the main board.
+- **It has not printed.** Everything below is unjudged until it does. Start with the 20 mm cube thebrain uses as its baseline.
+- **Belts.** They were left at an unmeasured tension on 2026-11-24, tight enough that Y's dead band is about ±0.07 mm. ZeroG's figure is 110–120 Hz on the 150 mm span; see [mercury-one-motion.md](mercury-one-motion.md). Re-measure both shapers after any change.
+- **Y dead band of about ±0.07 mm.** thebrain prints well at ±0.04 mm; whether ±0.07 mm shows is unknown. The same file lists what would reduce it.
+- **Main board temperature.** The board's own sensor reads 85–88°C in every session long enough to warm up, in 2025 and now, and reaches it within 15 minutes with only the motors energised. thebrain's identical board reads about 40°C at the same motor current, so this is a cooling problem on this machine. Check that the case fan spins and blows across the drivers.
+- **Intermittent `Communication timeout during homing`.** `multi_mcu_trsync_timeout` is raised to 0.05 s as a mitigation; see "Homing timeout" above. No timeout in one print start and roughly thirty homing moves since, but the fault is rare. The causes behind it are still open: the main board's serial link corrupts data while the heaters are on, and the LED updates fail in bursts.
+- Neopixel update errors, as on thebrain: about 4,500 in the first 45 minutes of a day.
 - `switch_offset` was tuned for the old probe; check the first layer.
-- Saved Y input shaper value (104.4 Hz) needs re-measuring.
+- Where the probe pin runs off the plate on the right and back edges is not known. Find out before any full mesh.
 - The config also carries thebrain's open macro items: the dead `COMPUTE_MESH_PARAMETERS` and `DOCK_PROBE` calls, and `off_below`.
 
 ## Before powering on
 
-- `startupinit: True`: as soon as the relay switches on, Klipper starts, heats to 184/50°C, homes, and sweeps the toolhead around the bed starting at about 19 mm. Anything on the bed taller than that gets hit. Clear the bed first, or turn `startupinit` off as was done on thebrain.
-- Check by eye that the probe is sitting in its dock.
-- Pull the repo first so the Z floor and mesh limits are the fixed ones.
-
-## To check once it is running
-
-- Where the probe pin runs off the plate on the right and back edges, before any full mesh.
-- Probe repeatability, gantry tilt convergence and Z calibration repeatability, as measured on thebrain.
-- Resonance on X, Y and each belt diagonal, including whether Y follows small moves at all (see thebrain's 2026-11-23 notes).
-- Which motors and boards are actually fitted.
+- Check by eye that the probe is sitting in its dock and the bed is clear.
+- Nothing moves at power-on (`startupinit` is off). The first `G28` lowers the bed 20 mm before homing.
 
 ## Kalico migration, 2026-11-23
 
@@ -253,5 +274,5 @@ To roll back:
 - The bed started this session about 0.56 mm low at the centre but nearly level (0.04 mm across the tilt points), where the two earlier power-ons had found it 0.82–0.87 mm out of level. So what the bed does while the Z motors are off is not the same every time.
 - The serial link noise, the LED update failures and the board temperature are unchanged by the migration. They are hardware or wiring matters.
 - A false emergency stop happened during testing, and it was the test script's fault: the Z watchdog was run around a `G28` on an unhomed printer, where the reported Z is meaningless. The watchdog now ignores Z until it is homed. A firmware restart cleared it.
-- Not yet done on Kalico here: resonance sweeps, a real print, a pause held past the idle timeout, and an unused printer powering itself off.
+- Not yet done on Kalico here: a real print, a pause held past the idle timeout, and an unused printer powering itself off.
 
