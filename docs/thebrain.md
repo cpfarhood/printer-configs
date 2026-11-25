@@ -111,7 +111,7 @@ SuperSlicer 2.7.61, printer profile "Mercury One Plus", print profile "Normal @M
 | Layer height / nozzle | 0.2 mm / 0.6 mm | |
 | Speeds | Default 120 mm/s, perimeters 60%, external 50%, first layer 30%, travel 160 | |
 | Acceleration | Profile asks for 3000; output is 1500, and 750 on the first layer | Capped by the printer profile's 1500 "extruding" machine limit |
-| Retraction | 1.5 mm at 60 mm/s, 0.3 mm Z lift | Slicer retraction, not `G10`/`G11` |
+| Retraction | 1.5 mm at 60 mm/s, 0.3 mm Z lift | Done by the slicer. The unused `[firmware_retraction]` section was removed on 2026-11-25, so `G10`/`G11` no longer exist on this printer. |
 | Pressure advance | 0.02 in the filament profile, but switched off | Nothing is sent, so the printer runs at 0 |
 | Filament | 190°C, bed 65°C, flow 0.96, fan 100% from layer 2 | |
 | Object labels | OctoPrint-style comments | Moonraker turns these into `EXCLUDE_OBJECT_DEFINE` on upload. A file that reaches the host any other way gets a full-bed mesh instead of an adaptive one. |
