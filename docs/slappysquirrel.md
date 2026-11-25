@@ -2,13 +2,13 @@
 
 Voron V0 / BoxZero, CoreXY.
 
-**Everything here is read from the config files, last edited 2024-01-14. The machine has not been inspected live.**
+**Being brought back into use from 2026-11-24.** Apart from the board, everything here is read from the config files, last edited 2024-01-14. The host has not been inspected yet.
 
 ## Hardware, per config
 
 | Part | What the config says |
 |---|---|
-| Mainboard | Header says BTT SKR Mini E3 V3, but every pin is an RP2040 `gpioNN` name and the serial ID is `usb-Klipper_rp2040_…`. That matches a BTT SKR Pico. Unverified. |
+| Mainboard | BTT SKR Pico (RP2040). Identified by the owner by eye on 2026-11-24, and it matches the config: every pin is an RP2040 `gpioNN` name and the serial ID is `usb-Klipper_rp2040_…`. The config header said SKR Mini E3 V3 until then. |
 | Host link | USB serial |
 | Toolhead | Mini Afterburner (50:10 gearing), 0.4 mm nozzle |
 | Probe | Klicky-style dockable probe driven by the vendored macros in `probe-slappysquirrel.cfg`, also used as the Z endstop |
@@ -41,6 +41,5 @@ Voron V0 / BoxZero, CoreXY.
 
 ## To check when someone is at the machine
 
-- Which board is really fitted, and fix the header.
 - Klipper fork and version, and the `mainsail.cfg` version.
 - Where the probe actually lands at the mesh corners.
