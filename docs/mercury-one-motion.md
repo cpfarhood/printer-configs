@@ -59,15 +59,18 @@ From 2026-11-25 the test print for thebrain and pinky is the **Orca cube** (Orca
 
 Earlier baselines in these notes (1546 s and 1554 s of printing, 1937 mm of filament) are for a Voron Design Cube scaled to 20 mm with the old SuperSlicer "Normal" profile. They do not compare with the Orca cube.
 
-OrcaSlicer 2.5.2 estimates for the Orca cube on thebrain, 2026-11-25, with the slicer's acceleration limit at 5000 mm/s². These are slicer estimates, not prints; none of these has been printed yet. `PRINT_START` adds about 7 minutes.
+OrcaSlicer 2.5.2 estimates for the Orca cube on thebrain with the print profiles as they stood at the end of 2026-11-25. These are slicer estimates, not prints. `PRINT_START` adds 3 to 7 minutes.
 
-| Print profile | PLA (Overture), 190/65°C | PETG (Overture), 230/75°C |
-|---|---|---|
-| Normal @Mercury One Plus | 49m 16s | 49m 00s |
-| Normal Faster @Mercury One Plus | 42m 13s | 40m 38s |
-| Normal Fastest @Mercury One Plus | 36m 37s | 32m 08s |
+| Print profile | What it is | PLA (Overture), 190/65°C | PETG (Overture), 230/75°C |
+|---|---|---|---|
+| Standard @Mercury One Plus | Quality baseline: 0.2 mm layers, outer wall 36 mm/s, 1500 mm/s² throughout | 56m 34s | 56m 25s |
+| Faster @Mercury One Plus | 0.2 mm layers, outer wall 50 mm/s, 3000 mm/s² | 40m 43s | 39m 19s |
+| Fastest @Mercury One Plus | 0.3 mm layers, outer wall 80 mm/s, 5000 mm/s² (outer wall 3000) | 24m 49s | 22m 18s |
+| Strong @Mercury One Plus | 0.3 mm layers, 0.8 mm lines, 4 walls, 31% gyroid | 36m 09s | 36m 02s |
 
-Filament: 5005 mm in PLA, 4953 mm in PETG. 150 layers.
+Filament: about 5000 mm for Standard, Faster and Fastest, 6600 mm for Strong.
+
+One real print so far: the cube with its plug, in ProtoPasta HTPLA, on Fastest while it still had 0.2 mm layers, took 39m 01s of printing against a 38m 35s estimate. The owner measured that cube at 30.00 mm tall and 30.10 mm wide on both axes, with a tight plug; the HTPLA flow ratio was then lowered from 1.00 to 0.96.
 
 ## How these machines compare with other builds
 
