@@ -70,14 +70,15 @@ OrcaSlicer 2.5.2 estimates for the Orca cube on thebrain with the print profiles
 
 Filament: about 5000 mm for Standard, Faster and Fastest, 6600 mm for Strong.
 
-Real prints so far, both the cube with its plug in ProtoPasta HTPLA on thebrain, 2026-11-25:
+Real prints so far, all the cube with its plug in ProtoPasta HTPLA on thebrain, 2026-11-25:
 
 | Profile as printed | Printing time | Estimate | Owner's measurements |
 |---|---|---|---|
 | Fastest while it still had 0.2 mm layers, HTPLA flow ratio 1.00 | 39m 01s | 38m 35s | 30.00 mm tall, 30.10 mm wide on both axes; plug very tight |
 | Fastest with 0.3 mm layers, HTPLA flow ratio 0.96 | 27m 03s | 26m 33s | 30 × 30 × 30 mm; plug stopped about two-thirds in, then threaded fully after being worked back and forth |
+| Standard, HTPLA flow ratio 0.96, pressure advance 0.049, smooth plate with its 0.03 mm first-layer offset | 63m 11s | 62m 42s | About 29.95 mm; plug threads in cleanly; no elephant foot. Owner's verdict: looks good |
 
-The plug is a tight fit by design: its thread crest radius is 7.43 mm and the hole's is 7.53 mm, 0.1 mm of clearance per side, on a thread about 5.6 mm long. Standard has not been printed on this piece yet.
+The plug is a tight fit by design: its thread crest radius is 7.43 mm and the hole's is 7.53 mm, 0.1 mm of clearance per side, on a thread about 5.6 mm long. The Standard row is the reference result for this piece: pressure advance for this filament was measured at 0.049 with a Klipper tuning tower the same day.
 
 ## How these machines compare with other builds
 
