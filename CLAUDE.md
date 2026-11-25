@@ -14,7 +14,7 @@ Moonraker's `[power printer]` device has `klipper` as a bound service. When the 
 
 ## Printer notes
 
-`docs/<printer>.md` records what the config can't: the hardware actually fitted (several config headers are wrong), measurements, incidents and open items. Read the printer's file before changing its config, and update it when you learn or change something. The repo is public, so keep hostnames, addresses, usernames and credentials out of every file.
+`docs/<printer>.md` records what the config can't: the hardware actually fitted (several config headers are wrong), measurements, incidents and open items. Read the printer's file before changing its config, and update it when you learn or change something. `docs/mercury-one-motion.md` covers what thebrain and pinky share: their Y axis ignores very small moves, which is normal for them, and the file says how to measure it. The repo is public, so keep hostnames, addresses, usernames and credentials out of every file.
 
 Probe moves are the main way to damage these machines. A probe that never triggers keeps driving Z to `position_min`. Before any probing, check that each point is one the printer's normal prints already use; `docs/thebrain.md` describes an incident and the watchdog approach.
 
