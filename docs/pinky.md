@@ -71,7 +71,7 @@ Both shaper values were re-measured on 2026-11-24; see "Resonance and Y motion".
 - Last completed print: 2025-02-27 (PETG at 225°C, 106 minutes).
 - The last three attempts, on 2025-02-28 (twice) and 2025-03-07, were cancelled before printing anything.
 - The final session's log ends with `Probe triggered prior to movement` twice during the probing at the start of a print, right after a normal reading at 35,165. On a Klicky-style probe that usually means the probe was not on the toolhead or its circuit was open. The printer has not run since, so **assume the probe or its dock needs attention**.
-- The same logs show the neopixel update errors and the dead `COMPUTE_MESH_PARAMETERS` and `DOCK_PROBE` calls seen on thebrain.
+- The same logs show the neopixel update errors and the dead `COMPUTE_MESH_PARAMETERS` and `DOCK_PROBE` calls seen on thebrain. The two calls were removed from the repo on 2026-11-25; this host has not pulled that yet.
 
 ## First power-on, 2026-11-23
 
@@ -201,7 +201,7 @@ Raw sweeps are on the host in `~/resonance-2026-11-23/` and `~/resonance-2026-11
 - Neopixel update errors, as on thebrain: about 4,500 in the first 45 minutes of a day.
 - `switch_offset` was tuned for the old probe; check the first layer.
 - Where the probe pin runs off the plate on the right and back edges is not known. Find out before any full mesh.
-- The config also carries thebrain's open macro items: the dead `COMPUTE_MESH_PARAMETERS` and `DOCK_PROBE` calls, and `off_below`.
+- Pull the repo to pick up the removal of the dead `COMPUTE_MESH_PARAMETERS` and `DOCK_PROBE` calls (2026-11-25). The config also carries thebrain's open `off_below` item.
 
 ## Before powering on
 

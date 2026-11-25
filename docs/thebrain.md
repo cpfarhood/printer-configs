@@ -53,7 +53,7 @@ The host's `printer.cfg` includes, in order:
 6. `mainsail.cfg`
 7. `macros-common.cfg`, `macro-test_speed.cfg`, `macro-heat_soak.cfg`, `macro-wipe_line.cfg`, `macros-lazy_homing.cfg`, `macros-printer_power.cfg`
 
-`macro-adaptive_bed_mesh.cfg` is **not** included. `PRINT_START` still calls its `COMPUTE_MESH_PARAMETERS`, which prints "Unknown command" and is skipped. The mesh itself comes from Klipper's own `BED_MESH_CALIBRATE ADAPTIVE=1`.
+`macro-adaptive_bed_mesh.cfg` is **not** included. The mesh comes from Klipper's own `BED_MESH_CALIBRATE ADAPTIVE=1`. Until 2026-11-25 `PRINT_START` also called that file's `COMPUTE_MESH_PARAMETERS`, and `[z_calibration]` ran a non-existent `DOCK_PROBE` as its `end_gcode`; each printed "Unknown command" at every print start and did nothing else. Both lines are removed and the fix is loaded on the host. `[z_calibration]` has no `end_gcode` on purpose: `PRINT_START` needs the probe to stay attached for the mesh that follows `CALIBRATE_Z`, and detaches it afterwards.
 
 ### Values that live only on the host
 
@@ -347,7 +347,7 @@ Ordered roughly by value. None of these are done.
 
 **Macros**
 
-- Remove the dead `COMPUTE_MESH_PARAMETERS` call from `PRINT_START` and `DOCK_PROBE` from `[z_calibration] end_gcode`. Both only print "Unknown command". The probe docks itself after `CALIBRATE_Z`.
+- `CALIBRATE_Z` run by hand leaves the probe attached; only `PRINT_START` detaches it.
 - `LOAD_FILAMENT` extrudes 75 mm before waiting for temperature, so it fails below 175°C.
 - `PRINT_START` and `PRINT_END` each retract 10 mm, and Mainsail retracts 5 mm on a cancel. That is a lot for a direct-drive extruder and can pull molten plastic into the cold part of the hotend, more so after cancelled prints in a row. Consider 1–2 mm.
 - The frame file rewrites all saved variables at every boot, and `_Printer_Variables` duplicates most of them. One mechanism should go.
