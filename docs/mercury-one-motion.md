@@ -53,6 +53,22 @@ Things that cost time:
 - The chip's Y channel returns exactly zero more often than it should, up to 30% of samples in a quiet sweep. Not explained. The toolhead-Y channel barely shows it.
 - thebrain's part fan comes on full at the idle timeout and stays on after the next command. Turn it off before a sweep.
 
+## Standard test piece
+
+From 2026-11-25 the test print for thebrain and pinky is the **Voron Design Cube v7 at full size (30 mm)**, 0.2 mm layers, 0.6 mm nozzle. OrcaSlicer ships the model as one of its built-in handy models. Use it for before-and-after comparisons of profiles, speeds and calibration.
+
+Earlier baselines in these notes (1546 s and 1554 s of printing, 1937 mm of filament) are for the same cube scaled to 20 mm with the old SuperSlicer "Normal" profile. They do not compare with the 30 mm cube.
+
+OrcaSlicer 2.5.2 estimates for the 30 mm cube on thebrain, 2026-11-25, with the slicer's acceleration limit at 5000 mm/s². These are slicer estimates, not prints; none of these has been printed yet. `PRINT_START` adds about 7 minutes.
+
+| Print profile | PLA (Overture), 190/65°C | PETG (Overture), 230/75°C |
+|---|---|---|
+| Normal @Mercury One Plus | 45m 08s | 45m 03s |
+| Normal Faster @Mercury One Plus | 39m 33s | 38m 20s |
+| Normal Fastest @Mercury One Plus | 35m 02s | 30m 46s |
+
+Filament: 4841 mm in PLA, 4790 mm in PETG. 150 layers.
+
 ## How these machines compare with other builds
 
 Other Mercury One.1 builds on the Ender 5 Plus frame publish Y resonances of 36–39 Hz and X resonances of 82–86 Hz, with `max_accel` between 6000 and 10000. Here Y is 41–46 Hz and X is 57–66 Hz. Y is normal for the design. X is lower, most likely because the Afterburner toolhead is heavier than the EVA toolheads those builds use. No report of a small-move dead band on Y was found, but few builders would measure for one.
