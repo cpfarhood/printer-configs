@@ -222,6 +222,8 @@ Share of each commanded Y move that reached the toolhead at bed centre, at the c
 
 **Baseline cube, 2026-11-24.** `cube_kalico.gcode`, the file from 2026-11-22: completed in 1554 s of printing with 1937 mm of filament, the same as on 2026-11-22. Owner's verdict while it printed: looks good. Main board 42°C and toolhead board 55°C at the end; no communication errors.
 
+**First real part, same evening.** A 200 mm PETG spool adapter sent by the owner (230/75°C, 27 layers) completed in 1647 s of printing against the slicer's 1622 s estimate, with 2310 mm of filament. The start sequence levelled the bed in three passes, calibrated Z (offset 0.482 mm) and probed a 5×5 adaptive mesh over 85–285 mm on both axes. No errors; main board 42°C.
+
 Two earlier attempts that evening were cancelled by the owner because the extruder was not gripping the filament. The cause was the grub screw on the extruder's drive gear, which the owner re-tightened. Spare extruder parts are on hand.
 
 Raw sweeps are on the host in `~/resonance-2026-11-24/` and `~/resonance-2026-11-24b/`.
