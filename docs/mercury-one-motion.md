@@ -55,19 +55,19 @@ Things that cost time:
 
 ## Standard test piece
 
-From 2026-11-25 the test print for thebrain and pinky is the **Voron Design Cube v7 at full size (30 mm)**, 0.2 mm layers, 0.6 mm nozzle. OrcaSlicer ships the model as one of its built-in handy models. Use it for before-and-after comparisons of profiles, speeds and calibration.
+From 2026-11-25 the test print for thebrain and pinky is the **Orca cube** (OrcaSlicer's built-in handy model `OrcaCube_v2`, 30 × 30 × 30 mm) at full size, 0.2 mm layers, 0.6 mm nozzle. Use it for before-and-after comparisons of profiles, speeds and calibration.
 
-Earlier baselines in these notes (1546 s and 1554 s of printing, 1937 mm of filament) are for the same cube scaled to 20 mm with the old SuperSlicer "Normal" profile. They do not compare with the 30 mm cube.
+Earlier baselines in these notes (1546 s and 1554 s of printing, 1937 mm of filament) are for a Voron Design Cube scaled to 20 mm with the old SuperSlicer "Normal" profile. They do not compare with the Orca cube.
 
-OrcaSlicer 2.5.2 estimates for the 30 mm cube on thebrain, 2026-11-25, with the slicer's acceleration limit at 5000 mm/s². These are slicer estimates, not prints; none of these has been printed yet. `PRINT_START` adds about 7 minutes.
+OrcaSlicer 2.5.2 estimates for the Orca cube on thebrain, 2026-11-25, with the slicer's acceleration limit at 5000 mm/s². These are slicer estimates, not prints; none of these has been printed yet. `PRINT_START` adds about 7 minutes.
 
 | Print profile | PLA (Overture), 190/65°C | PETG (Overture), 230/75°C |
 |---|---|---|
-| Normal @Mercury One Plus | 45m 08s | 45m 03s |
-| Normal Faster @Mercury One Plus | 39m 33s | 38m 20s |
-| Normal Fastest @Mercury One Plus | 35m 02s | 30m 46s |
+| Normal @Mercury One Plus | 49m 16s | 49m 00s |
+| Normal Faster @Mercury One Plus | 42m 13s | 40m 38s |
+| Normal Fastest @Mercury One Plus | 36m 37s | 32m 08s |
 
-Filament: 4841 mm in PLA, 4790 mm in PETG. 150 layers.
+Filament: 5005 mm in PLA, 4953 mm in PETG. 150 layers.
 
 ## How these machines compare with other builds
 
