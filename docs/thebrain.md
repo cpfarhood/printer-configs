@@ -402,7 +402,7 @@ Ordered roughly by value. None of these are done.
 **Macros**
 
 - `CALIBRATE_Z` run by hand leaves the probe attached; only `PRINT_START` detaches it.
-- `LOAD_FILAMENT` extrudes 75 mm before waiting for temperature, so it fails below 175°C.
+- `LOAD_FILAMENT` extruded 75 mm before waiting for temperature, so it failed below 175°C. Rewritten 2026-11-26 to wait first, and `M600` added for filament changes during a print; neither has been run on the printer yet.
 - `PRINT_START` and `PRINT_END` each retract 10 mm, and Mainsail retracts 5 mm on a cancel. That is a lot for a direct-drive extruder and can pull molten plastic into the cold part of the hotend, more so after cancelled prints in a row. Consider 1–2 mm.
 - The frame file rewrites all saved variables at every boot, and `_Printer_Variables` duplicates most of them. One mechanism should go.
 - `variable_use_custom_pos.` has a stray period, and `max_extrude_only_distance` is set twice in the toolhead file.
