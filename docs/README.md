@@ -11,6 +11,8 @@ One file per printer. These hold what the config files can't: what hardware is a
 
 [mercury-one-motion.md](mercury-one-motion.md) holds what applies to both Mercury machines: how their Y axis behaves on small moves, how to measure it, and what would change it.
 
+[voron-2.4-300-plan.md](voron-2.4-300-plan.md) is a plan, not a printer: a parts list for building one Voron 2.4 from pinky and thebrain, with what carries over and what has to be bought.
+
 ## Keeping these useful
 
 - Date every measurement and say how it was taken. A number without a date goes stale silently.
