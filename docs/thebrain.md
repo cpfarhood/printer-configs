@@ -20,7 +20,7 @@ Checked on the machine unless marked otherwise. Several labels in the config fil
 | Extruder | 50:17 gearing, 0.9° motor at 0.75 A, `rotation_distance` 22.2662775 |
 | Hotend | 0.6 mm nozzle, configured as a Generic 3950 thermistor (thermistor type not confirmed) |
 | Probe | Klicky-style dockable probe on Klipper's `dockable_probe` module, docked at the back of the gantry |
-| Z endstop | Nozzle-touch pin beside the bed at X388 Y83, used by `z_calibration` |
+| Z endstop | Nozzle-touch pin beside the bed at X388 Y81, used by `z_calibration` |
 | X endstop | On the toolhead board, read over CAN |
 | Frame sensor | Thermistor on the mainboard's TH0 port, feeding `z_thermal_adjust` |
 | Accelerometer | ADXL345 on the toolhead board |
@@ -80,7 +80,7 @@ These sit in the `SAVE_CONFIG` block of the host's `printer.cfg` and are not in 
 | Y endstop | Triggers at 375. Y can travel on to 390 to reach the probe dock. |
 | Probe dock | X210.5 Y384, approach from Y360, detach by sliding to X235 |
 | Probe offset from nozzle | X -1.5, Y +19.75 |
-| Z endstop pin | Nozzle at X388 Y83; probe switch body at X383 Y65. The nozzle position was Y85 until 2026-11-25, when the owner saw the nozzle landing about 2 mm behind the pin's centre. The switch position was not changed. |
+| Z endstop pin | Nozzle at X388 Y81; probe switch body at X383 Y65. The nozzle position was Y85 until 2026-11-25, when the owner saw the nozzle landing behind the pin's centre and had it moved forward in two 2 mm steps. The switch position was not changed. |
 | Pause / cancel park | X390 Y385, 15 mm above the print (Mainsail default) |
 | Bed mesh | 0,20 → 335,315, 7×7 |
 | Proven probe area | Probe positions X0…335, Y20…315 |
