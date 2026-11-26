@@ -100,6 +100,7 @@ Z positive moves the bed down, away from the nozzle.
 - **Cancel:** Mainsail's `CANCEL_PRINT` retracts, parks 15 mm above the print, and turns the heaters and part fan off. `_CANCEL_HOOK` sets the cancel LED effect, lowers the bed to 95% of Z travel (because thebrain sets `lowerbedoncancel: 1`), and schedules the power-off check, so the relay cuts once the nozzle is under 50°C.
 - **Idle:** after 10 idle minutes the motors and heaters turn off, the part fan runs, and the relay cuts once nozzle and bed are both under 50°C. A printer that is powered on and never used powers itself off after about 10.5 minutes.
 - **Motors off:** the bed sags when the Z motors release. The gantry tilt measured 1.3–1.6 mm out after each power-off, which is why every print starts with `Z_TILT_ADJUST`.
+- **Homing hop at the bottom of travel.** With Z unhomed, `G28` first drops the bed by `z_hop` (20 mm) without knowing where it is. Until 2026-11-26 a finished print left the bed at Z 381 of 385 mm (`PRINT_END` went to 95% of travel and the park move added 15 mm), so the next start drove the bed about 16 mm into its bottom stops and the Z belts skipped. `PRINT_END` and the cancel hook now stop at Z 345, which the park move takes to 360, leaving 25 mm. A print taller than that still ends near the bottom, and a bed moved to the bottom by hand is not covered.
 
 ## Slicer
 
