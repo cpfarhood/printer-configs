@@ -39,7 +39,7 @@ The shared macros read printer-specific settings from two separate places:
 1. **`save_variables`** (`printer.save_variables.variables`, aliased `svv`/`SVV`). A `[delayed_gcode INITIALIZATION]` block in the frame-level file writes these with `SAVE_VARIABLE` at boot and then calls `PRINTER_STARTUP`. `PRINT_START` uses them to decide on probe docking, `Z_TILT_ADJUST`, `CALIBRATE_Z`, bed mesh type, and wipe line.
 2. **`[gcode_macro _Printer_Variables]`**, defined in the machine-level file. `PRINTER_STARTUP`, `PRINT_START` temperature defaults, and all LED-effect logic (`main_panel`/`bed_panel`) read from it.
 
-Both define overlapping flags (`etemp`, `btemp`, `dockableprobe`, `ztiltadjust`, `autozcalibrate`, `bedmeshonprint`, `bedmeshtype`, `wipeline`). The value `PRINT_START` acts on comes from the save_variables block, not from `_Printer_Variables`, so a feature toggle must be changed in the right file. The LED flags are named `main_led`/`bed_led` in save_variables but `main_panel`/`bed_panel` in `_Printer_Variables`, and only the latter are read.
+Both define overlapping flags (`etemp`, `btemp`, `dockableprobe`, `ztiltadjust`, `autozcalibrate`, `bedmeshonprint`, `bedmeshtype`, `wipeline`). The value `PRINT_START` acts on comes from the save_variables block, not from `_Printer_Variables`, so a feature toggle must be changed in the right file. The LED flags are named `main_led`/`bed_led` in save_variables but `main_panel`/`bed_panel` in `_Printer_Variables`, and only the latter are read. One exception on the Mercury machines: `wipeline` is copied from `_Printer_Variables` into save_variables at boot, so it is set in the machine file only.
 
 `_CLIENT_VARIABLE` in machine files configures Mainsail's built-in client macros (park, retract).
 
