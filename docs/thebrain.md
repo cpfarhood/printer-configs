@@ -159,6 +159,28 @@ Full 7×7 mesh over 0,20 → 335,315, bed at about 31°C, 2 samples per point. R
 
 The plate is a dome: centre high, corners 0.4–0.5 mm low. A mesh at 50°C over a slightly smaller area gave the same shape with a 0.558 mm range.
 
+**Single-layer patches, 2026-11-26.** Five 0.2 mm patches at 225°C on the textured plate, bed 65°C, `switch_offset` 0.385, adaptive mesh 4×4 over X 91–279, Y 120–250 (about 62 × 43 mm between points). Thickness by calliper, which reads a little high on the texture:
+
+| Patch centre | Thickness | Look |
+|---|---|---|
+| Front left (110, 135) | 0.29 mm | no squish |
+| Centre (185, 185) | 0.26 mm | |
+| Back left (110, 235) | 0.24 mm | holes at the edges |
+| Back right (260, 235) | 0.24 mm | best |
+| Front right (260, 135) | 0.22 mm | |
+
+That start's calibration was about 0.04 mm higher than the average of the five starts since the pin move, so an average start would give about 0.21 mm. The spread across the bed is 0.07 mm. The same mesh, relative to the reference point at (185, 165), back row first:
+
+```
+x:      91     154     216     279
+y 250  -0.211  -0.163  -0.215  -0.251
+y 207  -0.150  +0.009  -0.150  -0.199
+y 163  -0.176  +0.076  -0.088  -0.191
+y 120  -0.199  -0.060  -0.148  -0.234
+```
+
+The top of the dome is near (155, 170), not at the reference point, and the surface drops 0.25 mm from there to X 91. The working explanation for the high front-left patch is that a curve fitted through points 62 mm apart does not follow that slope; it is not proven. `probe_count` goes from 7,7 to 11,11 for thebrain to test it: reprint the same patches and compare. The same plate then gets a 7×5 mesh, 35 points instead of 16, about two minutes more probing. A full (non-adaptive) mesh keeps the same outer points as before, so the edge hazard described under Incidents is unchanged.
+
 ### Resonance
 
 | Sweep | Strongest peaks | Fitted |
