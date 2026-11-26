@@ -1,8 +1,10 @@
 # thebrain
 
-An Ender 5 Plus converted to a ZeroG Mercury One (CoreXY), then customised further. Moved from Danger Klipper to Kalico on 2026-11-22. Last inspected live on 2026-11-24.
+An Ender 5 Plus converted to a ZeroG Mercury One (CoreXY), then customised further. Moved from Danger Klipper to Kalico on 2026-11-22. Last inspected live on 2026-11-25.
 
 **Status, 2026-11-24:** in service. New belts and adjusted, lubricated rails went on that day after a Y-axis fault on 2026-11-23, the shapers were re-saved for the new belts, and the baseline cube printed with the same time and filament as on 2026-11-22. See "Incidents".
+
+**Host reinstalled, 2026-11-25:** the Pi's boot drive failed that evening and the host was rebuilt on a blank MainsailOS image. Everything that lived only on the old drive is gone. All three boards connect and the saved values are back in place, but nothing has homed, probed or printed on the new host yet. See "Rebuilding the host".
 
 ## Hardware
 
@@ -24,7 +26,8 @@ Checked on the machine unless marked otherwise. Several labels in the config fil
 | Accelerometer | ADXL345 on the toolhead board |
 | Lighting | 25-LED neopixel strip (`main`) plus a white LED channel |
 | Camera | Logitech C930e at the front, looking back across the gantry. It sees the bed only when the bed is within roughly 60 mm of the nozzle. |
-| Host | Raspberry Pi 4, booting from a USB flash drive, wired Ethernet |
+| Host | Raspberry Pi 4, booting from a USB flash drive, wired Ethernet. Reinstalled 2026-11-25. |
+| Screen | 800×480 touchscreen on the Pi's display connector, running KlipperScreen with `screen-mercury_one_plus.cfg` |
 | Power | Moonraker switches the printer's supply through a GPIO relay. The Pi stays on. |
 
 ### Belts
@@ -36,10 +39,11 @@ Confirmed 2026-11-22 by camera: a move along +X+Y turns only `stepper_x`, and th
 
 ## Software
 
+- Host OS: MainsailOS on 64-bit Debian 13 with Python 3.13, since the reinstall on 2026-11-25. Before that it was 32-bit Raspbian 11 with Python 3.9.
 - Klipper fork: Kalico `v2026.11.00` since 2026-11-22, on the host and on all three MCUs. The checkout sits on the monthly release tag and Moonraker's Klipper updater is on the `stable` channel, so it follows monthly tags, not every commit. Before that it ran Danger Klipper `v0.12.0-526` (December 2024) on a repository name that no longer received updates.
 - `dockable_probe` and `z_calibration` are bundled with Kalico. `led_effect` is a separate plugin, linked into `klippy/plugins/` (Kalico refuses to start if the same module is in both `extras` and `plugins`).
 - Option and command names must be checked against Kalico's docs, not mainline Klipper's.
-- Resonance tools need the system package `libopenblas0`. It was missing from November 2024 until 2026-11-22, so `TEST_RESONANCES` and `SHAPER_CALIBRATE` failed with a numpy import error during that time. `calibrate_shaper.py` still fails because matplotlib is not installed in Klipper's Python environment.
+- Resonance tools: on the old 32-bit install they needed the system package `libopenblas0`, which was missing from November 2024 until 2026-11-22. The 64-bit install does not need it; numpy loads in Klipper's Python environment as installed. `TEST_RESONANCES` has not been run on the new host. matplotlib is not installed, so `calibrate_shaper.py` cannot draw graphs.
 
 ## Config
 
@@ -57,7 +61,7 @@ The host's `printer.cfg` includes, in order:
 
 ### Values that live only on the host
 
-These sit in the `SAVE_CONFIG` block of the host's `printer.cfg` and are not in any file in this repo. Copied 2026-11-22:
+These sit in the `SAVE_CONFIG` block of the host's `printer.cfg` and are not in any file in this repo. Copied 2026-11-22. When the host was rebuilt on 2026-11-25 this table was the only surviving copy, and the block was typed back in from it. Update the table whenever one of these is re-saved.
 
 | Section | Values |
 |---|---|
@@ -66,7 +70,7 @@ These sit in the `SAVE_CONFIG` block of the host's `printer.cfg` and are not in 
 | `[input_shaper]` | X mzv 66.0 Hz, Y mzv 46.0 Hz (59.2 and 43.2 Hz until 2026-11-24, on the old belts) |
 | `[stepper_z]` | `position_endstop` 7.846 |
 | `[dockable_probe]` | `z_offset` 8.110 |
-| `[bed_mesh default]` | A stale 3×3 adaptive mesh over 155–214 mm. Not used by prints. |
+| `[bed_mesh default]` | A stale 3×3 adaptive mesh over 155–214 mm, not used by prints. Not carried over in the rebuild. |
 
 ## Coordinates
 
@@ -194,9 +198,19 @@ A second round the same day covered the startup block and the bed-lowering on ca
 
 Not tested: the 4-hour give-up on a paused print, a queued job powering the printer on, and anything on the other three printers.
 
-The test file `audit_airprint.gcode` is still in the host's gcode folder and can be reused. It shows in the print history as two cancelled jobs.
+The test file `audit_airprint.gcode` was in the host's gcode folder until the drive failed on 2026-11-25. It shows in the print history as two cancelled jobs.
 
 ## Incidents
+
+### 2026-11-25: boot drive failed, host reinstalled
+
+Between prints that evening Moonraker answered one request and then stopped answering, while the Pi still answered ping. The owner found the filesystem on the boot drive broken and reinstalled the host from a blank MainsailOS image. Nothing was printing and the printer was powered off at the time.
+
+Lost with the drive: the host's `printer.cfg`, `moonraker.conf`, `variables.cfg` and camera config, the Kalico checkout and its Python environment, the `led_effect` plugin, KlipperScreen, the firmware build configs and `~/flashmcu.sh`, the CanBoot flashing scripts, the pre-Kalico backup, the print history, and every uploaded gcode file.
+
+Not lost: the firmware on the three boards, everything in this repo, and the saved calibration values, because they had been copied into the table under "Config".
+
+The rebuild is described under "Rebuilding the host".
 
 ### 2026-11-23 and 24: Y fault, new belts
 
@@ -270,9 +284,9 @@ The offline harness is Klipper's batch mode: `klippy.py printer.cfg -i test.gcod
 
 ### Backup and rollback
 
-A full copy of the live install was taken on 2026-11-22 into `~/backups/pre-kalico-2026-11-22/` on the host: the `klipper` tree, `klippy-env`, the config folder, the service files, the build configs, and firmware images built from the installed source for the mainboard and toolhead board. It sits on the same drive as the install, so it protects against a bad migration, not a dead drive.
+A full copy of the live install was taken on 2026-11-22 into `~/backups/pre-kalico-2026-11-22/` on the host: the `klipper` tree, `klippy-env`, the config folder, the service files, the build configs, and firmware images built from the installed source for the mainboard and toolhead board. It sat on the same drive as the install, so it protected against a bad migration, not a dead drive. **It was lost when that drive failed on 2026-11-25.** There is no longer a Danger Klipper install or firmware image to roll back to; the steps below are kept as a record.
 
-To roll back:
+The rollback was:
 
 1. Stop the `klipper` service.
 2. Replace `~/klipper` and `~/klippy-env` with the copies from the backup.
@@ -319,6 +333,36 @@ Every check from the Danger Klipper baseline has now been repeated on Kalico. Th
 - **`GET_POSITION` is not a homing-repeatability measure.** On Kalico the `stepper:` and `mcu:` Z values carry an offset that changes between homes while the toolhead position stays correct. To check Z homing, run `PROBE_Z_ACCURACY` at the endstop after each home and compare where the nozzle touches.
 - **The offline harness's fake probe never triggers**, and Kalico's CAN statistics module crashes on its simulated reply. Both are harness artifacts, not printer faults.
 
+## Rebuilding the host
+
+What a blank MainsailOS image needed before this printer worked again, as done on 2026-11-25. The boards were not reflashed: the host was put on the same Kalico tag their firmware already carried.
+
+1. **Kalico.** Point `~/klipper` at the Kalico repository, check out the tag the boards run (`v2026.11.00` then), and install `scripts/klippy-requirements.txt` into `~/klippy-env`. It installs cleanly on Python 3.13.
+2. **Host MCU.** Build with a config that holds only `CONFIG_MACH_LINUX=y` (`make olddefconfig`, then `make`), copy `out/klipper.elf` to `/usr/local/bin/klipper_mcu`, install and enable `scripts/klipper-mcu.service`, and add the login user to the `tty` group.
+3. **`led_effect`.** Clone `julianschill/klipper-led_effect` and link `src/led_effect.py` into `~/klipper/klippy/plugins/`. Do not use its install script: it links into `extras`.
+4. **Config repos.** Clone this repo and `printer-moonraker-configs` into `~/printer_data/config/`.
+5. **`printer.cfg`.** The include list under "Config", in that order, followed by a `SAVE_CONFIG` block holding the values in the table there.
+6. **`moonraker.conf`.** Add `[include printer-moonraker-configs/moonraker-mercury_one_plus.cfg]` (power relay, webcam, job queue, KlipperScreen and theme updaters) and `[update_manager klipper]` with `channel: stable`.
+7. **Mainsail theme.** Clone `ZeroGDesign/zerog-mainsail-theme` into the home folder and run its `install.sh`, which links `.theme` into the config folder.
+8. **Camera.** In `crowsnest.conf` set `mode: camera-streamer` and `resolution: 1920x1080`. The stock file is ustreamer at 640x480, and the shared Moonraker webcam entry expects camera-streamer's WebRTC stream.
+9. **KlipperScreen.** Clone it and run `scripts/KlipperScreen-install.sh` with the X11 backend, declining the NetworkManager change. `KlipperScreen.conf` in the config folder holds one line that includes `printer-configs/screen-mercury_one_plus.cfg`.
+
+Things the image already had: the UART the mainboard uses (`enable_uart=1`, Bluetooth overlay disabled, no serial console), the CAN interface at 1 Mbit, and the ARM toolchain. `sudo` asks for the account password on this image.
+
+Checked afterwards, printer powered on, nothing moved or heated:
+
+| Check | Result |
+|---|---|
+| Klipper state | Ready. Mainboard, toolhead board and host MCU all report Kalico `v2026.11.00`. |
+| Saved values | Both PIDs, shaper (mzv 66.0 / 46.0 Hz), Z endstop 7.846 and probe offset 8.110 load as in the table |
+| Config warnings | Only the known `off_below` deprecation |
+| Temperatures | Nozzle 20°C, bed 22°C, mainboard 29°C: all plausible for a cold printer |
+| Start-up variables | `variables.cfg` rewritten by the `INITIALIZATION` block on first start |
+| Camera | 1920x1080 snapshot works |
+| Moonraker | Starts with no warnings; the power relay switches the printer on and off |
+
+Not yet checked on the new host: homing, probing, `PRINT_START`, a print, resonance tests and power-off after a print. KlipperScreen's log shows it running on the panel at 800x480 and connected to Moonraker, but nobody has looked at or touched the screen yet.
+
 ## Open items
 
 Ordered roughly by value. None of these are done.
@@ -357,8 +401,12 @@ Ordered roughly by value. None of these are done.
 
 - Update Moonraker, `led_effect` and crowsnest. Klipper itself is now current.
 - The host's `printer.cfg` and `moonraker.conf` are not in version control.
+- **No copy of the host exists.** The drive failure on 2026-11-25 cost a hand rebuild, and the calibration values survived only because they had been copied into this file. Put the host's `printer.cfg` and `moonraker.conf` somewhere that is backed up (the Moonraker one could join `printer-moonraker-configs`), or image the drive once the rebuild has proven itself.
+- **The firmware build configs are gone**, along with `~/flashmcu.sh` and the CanBoot scripts. They are needed before the next Kalico update, which has to reflash all three MCUs. What the boards report about their current builds: mainboard STM32G0B1, external crystal, serial on PA3/PA2 (USART2) at 500000 baud; toolhead board STM32F072, external crystal, CAN on PB8/PB9 at 1 Mbit, behind a CanBoot bootloader. Crystal frequencies and bootloader offsets are not reported and must be confirmed before building.
+- Moonraker's updater does not track the Kalico checkout on the reinstalled host. It reports the repository as invalid ("Detached HEAD", "Unofficial remote url") and shows version numbers left over from the image's mainline Klipper. Moonraker v0.10.0 rejects `origin` and `primary_branch` in `[update_manager klipper]`. Printing is unaffected; Kalico updates are a manual job here anyway because of the reflash.
+- The MainsailOS image dates from May 2026, so Moonraker, Mainsail and crowsnest on the new host are behind again.
+- The camera runs on automatic exposure, which meters the dark bed and washes out the toolhead. A manual setting (exposure 156, gain 45, with the part light at 100%) looked better on 2026-11-25 but was applied live only and went with the old drive. It would go on a `v4l2ctl:` line in `crowsnest.conf`.
 - The Pi runs at about 65°C with the printer off and 47°C with it on, so it depends on a printer-powered fan.
-- Unused files on the host: old `klicky-*.cfg` files and dated `printer-*.cfg` backups.
 
 **Labels to correct**
 
@@ -374,6 +422,6 @@ Ordered roughly by value. None of these are done.
 
 ## History
 
-- 376 jobs, about 690 print hours and 5.7 km of filament as of 2026-11-22.
+- 376 jobs, about 690 print hours and 5.7 km of filament as of 2026-11-22. The host's print history was lost with the drive on 2026-11-25 and counts from zero again.
 - Last print before the 2026-11-22 session: 2026-01-09.
 - `retired-toolhead-stealthburner.cfg` is this printer's previous toolhead.
