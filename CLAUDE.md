@@ -29,6 +29,7 @@ Layers, by filename prefix:
 - `printer-<machine>.cfg`, for example `thebrain`, `pinky`: per-machine overrides stacked on a frame file. `thebrain` and `pinky` are both Mercury One Plus machines and are near-identical, differing mainly in calibration values and CAN UUIDs. `hellonurse` (RatRig V-Minion) and `slappysquirrel` (Voron V0) are self-contained frame+machine files.
 - `toolhead-*.cfg`, `probe-*.cfg`, `steppers-*.cfg`: hardware modules that fill in or override pins and currents for `[extruder]`, probes, and stepper motors. `retired-*` files are no longer in use.
 - `macros-*.cfg` / `macro-*.cfg`: G-code macros shared across printers. `macros-common.cfg` holds `PRINT_START`, `PRINT_END`, and filament load/unload. `PAUSE`, `RESUME` and `CANCEL_PRINT` come from Mainsail's `mainsail.cfg` on the host; `macros-common.cfg` only supplies `_PAUSE_HOOK`, `_RESUME_HOOK` and `_CANCEL_HOOK`, which a printer opts into through `variable_user_*_macro` in its `_CLIENT_VARIABLE`.
+- `plugin-*.cfg`: the config section for an optional Klipper plugin. Include one only on a host where that plugin is installed, or Klipper will not start.
 - `screen-*.cfg`: KlipperScreen config, not Klipper.
 
 ## Two per-printer variable mechanisms (keep in sync)
