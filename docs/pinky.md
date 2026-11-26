@@ -201,7 +201,7 @@ Raw sweeps are on the host in `~/resonance-2026-11-23/` and `~/resonance-2026-11
 - Neopixel update errors, as on thebrain: about 4,500 in the first 45 minutes of a day.
 - `switch_offset` was tuned for the old probe; check the first layer.
 - Where the probe pin runs off the plate on the right and back edges is not known. Find out before any full mesh.
-- Pull the repo to pick up the removal of the dead `COMPUTE_MESH_PARAMETERS` and `DOCK_PROBE` calls (2026-11-25). The config also carries thebrain's open `off_below` item.
+- Pull the repo to pick up the removal of the dead `COMPUTE_MESH_PARAMETERS` and `DOCK_PROBE` calls (2026-11-25). The same pull also brings `min_power` in place of the deprecated `off_below` in `[fan]`, which removes the start-up warning.
 
 ## Before powering on
 

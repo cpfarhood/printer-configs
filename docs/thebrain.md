@@ -252,7 +252,7 @@ Kalico `v2026.11.00` was set up in a separate clone and Python environment on th
 |---|---|
 | Python packages on the host's Python 3.9 | Install in about 30 s from prebuilt wheels. Kalico needs 3.9 or newer, so this host is at the minimum. |
 | Firmware for all three MCUs, from the saved build configs | Builds with the existing toolchain. Each image uses under a third of flash. |
-| This printer's `printer.cfg`, loaded offline | Loads without errors. The offline log showed no warnings, but the live printer reports one: `off_below` in `[fan]` is deprecated in favour of `min_power`. |
+| This printer's `printer.cfg`, loaded offline | Loads without errors. The offline log showed no warnings, but the live printer reports one: `off_below` in `[fan]` is deprecated in favour of `min_power`. That was changed to `min_power` on 2026-11-25. |
 | Macros run offline: pause, resume, cancel, filament load and unload, `TEST_SPEED`, `HEAT_SOAK`, `WIPE_LINE`, LED and general commands | All complete |
 | The baseline cube gcode, simulated start to finish | Completes. 1608 s simulated against 1601 s on the installed version. |
 
@@ -356,7 +356,6 @@ Ordered roughly by value. None of these are done.
 **Host**
 
 - Update Moonraker, `led_effect` and crowsnest. Klipper itself is now current.
-- `off_below` in the shared `[fan]` section is deprecated on Kalico; `min_power` replaces it with the same meaning. It is left alone because pinky loads the same file and its Klipper version is unknown: mainline Klipper does not have `min_power`.
 - The host's `printer.cfg` and `moonraker.conf` are not in version control.
 - The Pi runs at about 65°C with the printer off and 47°C with it on, so it depends on a printer-powered fan.
 - Unused files on the host: old `klicky-*.cfg` files and dated `printer-*.cfg` backups.
