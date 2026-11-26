@@ -53,6 +53,33 @@ Things that cost time:
 - The chip's Y channel returns exactly zero more often than it should, up to 30% of samples in a quiet sweep. Not explained. The toolhead-Y channel barely shows it.
 - thebrain's part fan comes on full at the idle timeout and stays on after the next command. Turn it off before a sweep.
 
+## Standard test piece
+
+From 2026-11-25 the test print for thebrain and pinky is the **Orca cube** (OrcaSlicer's built-in handy model `OrcaCube_v2`, 30 × 30 × 30 mm) at full size, 0.2 mm layers, 0.6 mm nozzle. Use it for before-and-after comparisons of profiles, speeds and calibration.
+
+Earlier baselines in these notes (1546 s and 1554 s of printing, 1937 mm of filament) are for a Voron Design Cube scaled to 20 mm with the old SuperSlicer "Normal" profile. They do not compare with the Orca cube.
+
+OrcaSlicer 2.5.2 estimates for the Orca cube on thebrain with the print profiles as they stood at the end of 2026-11-25. These are slicer estimates, not prints. `PRINT_START` adds 3 to 7 minutes.
+
+| Print profile | What it is | PLA (Overture), 190/65°C | PETG (Overture), 230/75°C |
+|---|---|---|---|
+| Standard @Mercury One Plus | Quality baseline: 0.2 mm layers, outer wall 36 mm/s, 1500 mm/s² throughout | 56m 34s | 56m 25s |
+| Faster @Mercury One Plus | 0.2 mm layers, outer wall 50 mm/s, 3000 mm/s² | 40m 43s | 39m 19s |
+| Fastest @Mercury One Plus | 0.3 mm layers, outer wall 80 mm/s, 5000 mm/s² (outer wall 3000) | 24m 49s | 22m 18s |
+| Strong @Mercury One Plus | 0.3 mm layers, 0.8 mm lines, 4 walls, 31% gyroid | 36m 09s | 36m 02s |
+
+Filament: about 5000 mm for Standard, Faster and Fastest, 6600 mm for Strong.
+
+Real prints so far, all the cube with its plug in ProtoPasta HTPLA on thebrain, 2026-11-25:
+
+| Profile as printed | Printing time | Estimate | Owner's measurements |
+|---|---|---|---|
+| Fastest while it still had 0.2 mm layers, HTPLA flow ratio 1.00 | 39m 01s | 38m 35s | 30.00 mm tall, 30.10 mm wide on both axes; plug very tight |
+| Fastest with 0.3 mm layers, HTPLA flow ratio 0.96 | 27m 03s | 26m 33s | 30 × 30 × 30 mm; plug stopped about two-thirds in, then threaded fully after being worked back and forth |
+| Standard, HTPLA flow ratio 0.96, pressure advance 0.049, smooth plate with its 0.03 mm first-layer offset | 63m 11s | 62m 42s | About 29.95 mm; plug threads in cleanly; no elephant foot. Owner's verdict: looks good |
+
+The plug is a tight fit by design: its thread crest radius is 7.43 mm and the hole's is 7.53 mm, 0.1 mm of clearance per side, on a thread about 5.6 mm long. The Standard row is the reference result for this piece: pressure advance for this filament was measured at 0.049 with a Klipper tuning tower the same day.
+
 ## How these machines compare with other builds
 
 Other Mercury One.1 builds on the Ender 5 Plus frame publish Y resonances of 36–39 Hz and X resonances of 82–86 Hz, with `max_accel` between 6000 and 10000. Here Y is 41–46 Hz and X is 57–66 Hz. Y is normal for the design. X is lower, most likely because the Afterburner toolhead is heavier than the EVA toolheads those builds use. No report of a small-move dead band on Y was found, but few builders would measure for one.
