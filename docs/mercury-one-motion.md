@@ -87,7 +87,7 @@ The owner's definition of the profile ladder, set on 2026-11-27. Structure and s
 
 Things to know when reading the table:
 
-- The filament's melt limit caps the real speed. At 24 mm³/s a 0.6 mm line tops out near 200 mm/s on 0.2 mm layers and near 133 mm/s on 0.3 mm layers, so Ultra never reaches the speeds shown.
+- The filament's melt limit caps the real speed. With HTPLA (24 mm³/s, flow ratio 0.96) the sliced files top out at 156 mm/s on 0.3 mm layers, 122 on 0.4 and 110 on 0.45; the same sum gives about 224 mm/s on 0.2 mm layers. So on 0.3 mm layers a 190 mm/s setting runs at 156, and on thicker layers every wall and infill speed in the table is cut.
 - The slicer's "The Brain" machine limit is 8000 mm/s²; "Pinky" keeps its own lower limit and clamps these profiles to it.
 - Klipper does not clamp `SET_VELOCITY_LIMIT` to the config's `max_accel`. thebrain's config still says 5000, which is what the start sequence and manual moves use; the print file sets its own value per feature.
 - On a single small part the 10 s minimum layer time governs and the faster profiles gain little. Judge the steps on a full plate.
@@ -118,6 +118,21 @@ OrcaSlicer 2.5.2 estimates on thebrain with ProtoPasta HTPLA at 200°C. These ar
 - **What slower walls would cost,** as OrcaSlicer estimates for the three-drawer plate on Fastest (1h 35m as set): inner and outer wall at 5000 mm/s² 1h 36m, at 3000 1h 40m, at 1500 1h 48m; every acceleration at 3000 1h 46m, at 1500 2h 04m. Faster is 2h 18m. Only "every acceleration 1500" has been printed.
 - **Why row 6 looked best:** worked through Klipper's speed-planning rules, at 1500 mm/s² the dotted wall beside the notch averaged 45 mm/s and never reached the 150 mm/s asked for (85 mm/s average at 8000), while the long plain walls averaged about 130 mm/s. So the test does not separate low acceleration from low speed near the dots; it shows that low acceleration gives slow motion near detail and keeps the speed elsewhere.
 - **Applied the same afternoon:** Faster became row 6 (Fastest's speeds, every acceleration 1500 mm/s², still 3 walls). Fastest and Ultra kept 8000 mm/s² for infill and travel and dropped both walls to 1500; that combination has not been printed.
+
+**Thick-layer profiles, added 2026-11-27.** After the ghosting tests the owner's direction is to stop aiming these machines at 0.2 mm work and make them good at 0.3 mm and thicker. Three profiles were added for both machines, named by layer height: **0.30mm**, **0.40mm** and **0.45mm @Mercury One Plus**. Each is Faster as it stands (3 walls, 0.6 mm lines, 10% gyroid, its speeds, every acceleration 1500 mm/s², 0.2 mm first layer) with the layer height changed and 3 top / 2 bottom layers.
+
+| | 0.30mm | 0.40mm | 0.45mm |
+|---|---|---|---|
+| Top / bottom thickness, mm | 0.9 / 0.6 | 1.2 / 0.8 | 1.35 / 0.9 |
+| Wall and infill speed after the HTPLA melt limit, mm/s | 150 outer, 156 inner | 122 | 110 |
+| Orca cube | 30m 29s | 24m 31s | 22m 37s |
+| Three thin-walled drawers on one plate | 1h 28m | 1h 10m | 1h 07m |
+
+- 0.45 mm is the most the 0.6 mm nozzle is set up for in the machine profiles. A 0.5 mm layer needs a 0.8 mm nozzle.
+- At these layer heights the hotend's melt rate sets the pace, not the motion system, which is why the gentle acceleration costs little: 0.30mm at 1500 mm/s² is quicker on the plate than Fastest was at 0.2 mm and 8000 (1h 35m).
+- Estimates are the same on the "Pinky" machine profile.
+- None of the three has been printed. The ghosting tests were all at 0.2 mm, so whether the mark stays away at these heights is not known.
+- The older profiles were left in place.
 
 Until the afternoon of 2026-11-27 Faster ran 80 mm/s outer and 150 mm/s inner walls at 3000 and 5000 mm/s² (cube 34m 18s, plate 2h 18m), and Fastest and Ultra ran their walls at 5000 (outer) and 8000 (inner) mm/s² (cube 30m 56s and 20m 55s, plate 1h 35m and 1h 09m). Before 2026-11-27 Fastest was a 0.3 mm profile, Strong had 0.8 mm lines and 31% infill, and Faster's outer wall was 50 mm/s until late on 2026-11-25. Earlier estimates in the history of this file belong to those versions.
 
