@@ -196,6 +196,24 @@ The saved shaper values still fit. The lower belt resonates lower than the upper
 
 These figures are for the old belts. The new belts' figures are under "2026-11-23 and 24: Y fault, new belts".
 
+### Speed and acceleration ladder, 2026-11-27
+
+No filament, heaters off, on the new belts with the shapers at X mzv 66.0 Hz and Y mzv 46.0 Hz and the X/Y motors at 1.35 A. Each stage is one `TEST_SPEED` run with `BOUND=40`, which keeps the pattern inside X40–355, Y40–350 and clear of the probe dock at Y384: home, read the motor step counts, run the pattern, re-home, read again. One belt tooth is 640 microsteps, and the home position itself repeats within about 25.
+
+| Speed (mm/s) | Acceleration (mm/s²) | Loops | Motor A / B change (microsteps) | Result |
+|---|---|---|---|---|
+| 300 | 5000 | 2 | −27 / −15 | no lost steps |
+| 300 | 6000 | 3 | −16 / −16 | no lost steps |
+| 300 | 8000 | 3 | −7 / −25 | no lost steps |
+| 300 | 10000 | 3 | −16 / −14 | no lost steps |
+| 350 | 5000 | 1, then 3 | −10 / −18, then −11 / −21 | no lost steps |
+| 400 | 5000 | 1, then 3 | −8 / −24, then −4 / −24 | no lost steps |
+| 400 | 10000 | 5 | −21 / −11 | no lost steps |
+
+The ladder stopped at its planned top, so the point where the motors lose step is above 400 mm/s and 10000 mm/s² and was not found. Main board 36 → 40°C and toolhead board 34 → 37°C over 13 minutes; no communication errors.
+
+What this does not show: these are travel moves on a cold machine, under two minutes a stage. It says the motors keep step, not that a print looks right at those values. The Y shaper rounds corners more as acceleration rises. Scaling the example in Klipper's resonance guide by frequency squared puts the suggested limit for mzv at 46 Hz near 8000 mm/s²; that is an estimate, not a figure from this printer's own calibration. The config limits were left at 300 mm/s and 5000 mm/s².
+
 ## Tests of the 2026-11-22 config changes
 
 Run on the machine the same day, after the changes were pulled. The pause and cancel tests used a no-extrusion air print at 190/50°C.
@@ -421,7 +439,8 @@ Ordered roughly by value. None of these are done.
 - A pulley or idler ran off-centre on the old belts (tension pulsed once per motor turn). Not re-checked since the new belts.
 - The extruder's drive-gear grub screw worked loose on 2026-11-24. Check it if extrusion thins out.
 - Calibrate pressure advance.
-- The slicer profile prints at 750–1500 mm/s² against a machine limit of 5000. The shaper results support about 5000.
+- The machine limits are 300 mm/s and 5000 mm/s², and the fastest slicer profiles now use both. A no-filament ladder on 2026-11-27 kept step up to 400 mm/s and 10000 mm/s² (see "Speed and acceleration ladder"). Not raised: recent parts were limited by cooling, not by motion (corners curling up, parts that would not mate with the same part from another printer), and no print has been judged above 5000 mm/s².
+- **Parts come out soft.** Reported 2026-11-27 for PLA on the 0.6 mm nozzle: corners curling upward and what looks like over-extrusion. What the sliced files showed: minimum layer time was 0 in the two filament profiles in use, the bed was 65°C on every layer, and there is one part-cooling fan. Minimum layer time was set back to 10 s and the HTPLA bed to 60°C in the slicer that day; no print has confirmed either. The same HTPLA reached about 27 mm³/s at 200°C in the owner's flow test, so the 24 mm³/s limit has margin. Elephant foot compensation is still 0.
 - Neopixel update errors. Try a newer `led_effect` and a lower frame rate than 24 fps.
 
 **Macros**
@@ -447,6 +466,7 @@ Ordered roughly by value. None of these are done.
   - Take a copy of the host first (see the item above): the install changes Klipper's Python environment and there is nothing to roll back to.
 - **The camera stream does not come back after a crash.** On 2026-11-25 at 23:22 `camera-streamer` exited with code -6. The `crowsnest` service stayed "active" with nothing serving the stream, and Mainsail showed a 502 until the service was restarted by hand the next morning (through Moonraker's service API; no restart of Moonraker or Klipper is needed). The unit has `Restart=on-failure`, but the wrapper exits cleanly when the streamer dies, so systemd does not restart it.
 - **Spoolman** (per-spool filament tracking shown in Mainsail) needs a Spoolman server running somewhere and a `[spoolman]` section in the host's `moonraker.conf` pointing at it. The server address is a private detail and must not go in either public repo.
+- **The touchscreen shows a picture but does not respond to touch (found 2026-11-27).** Touch did work on this boot: the screen's log shows panels opened by touch late on 2026-11-25 and early on 11-26. On 11-27 the kernel received nothing from the touch controller during 150 s of tapping, while the driver was still polling it about 80 times a second with no bus errors. So KlipperScreen and the display server are not the cause, and restarting them will not help. Not yet tried: a power cycle of the Pi. If touch is still dead after that, reseat the small touch flex on the back of the display. The panel driver also logged "failed to enable backlight" once at that boot.
 - The camera runs on automatic exposure, which meters the dark bed and washes out the toolhead. A manual setting (exposure 156, gain 45, with the part light at 100%) looked better on 2026-11-25 but was applied live only and went with the old drive. It would go on a `v4l2ctl:` line in `crowsnest.conf`.
 - The Pi runs at about 65°C with the printer off and 47°C with it on, so it depends on a printer-powered fan.
 
