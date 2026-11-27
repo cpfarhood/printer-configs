@@ -90,6 +90,13 @@ Things to know when reading the table:
 - Klipper does not clamp `SET_VELOCITY_LIMIT` to the config's `max_accel`. thebrain's config still says 5000, which is what the start sequence and manual moves use; the print file sets its own value per feature.
 - On a single small part the 10 s minimum layer time governs and the faster profiles gain little. Judge the steps on a full plate.
 
+Two purpose-built profiles sit beside the ladder. Each is Standard with only the listed settings changed:
+
+- **Vase:** spiral mode, 1 wall, no top layers, no infill, 0.3 mm layers.
+- **Voron:** the Voron printed-parts recipe: 4 walls, 5 top and 5 bottom layers, 42% infill, a 5 mm brim and a draft shield.
+
+"RatRig" and a second "Voron" without the machine suffix are leftovers converted from other printers' SuperSlicer profiles. They are tagged for these machines but do not follow the ladder, and are kept for now. Removed on 2026-11-27: "Slow", "-EM Test", "ZeroPanels" and "ZeroPanels-Hinges".
+
 OrcaSlicer 2.5.2 estimates on thebrain with ProtoPasta HTPLA at 200°C. These are slicer estimates, not prints, and nothing has been printed on the new Fastest, Ultra or Strong. `PRINT_START` adds 3 to 7 minutes.
 
 | | Standard | Strong | Faster | Fastest | Ultra |
