@@ -68,11 +68,11 @@ The owner's definition of the profile ladder, set on 2026-11-27. Structure and s
 - **Strong:** Standard's speeds with a fourth wall, thicker layers and thicker shells.
 - **Faster:** predictable quality, noticeably quicker. Since the ghosting tests of 2026-11-27 (below) it is Fastest's speeds with Standard's acceleration: quick on long plain walls, slow near detail.
 - **Fastest:** gives up some surface finish for speed, and one wall.
-- **Ultra:** Fastest at 0.3 mm layers.
+- **Ultra:** Fastest at 0.45 mm layers, the thickest the 0.6 mm nozzle is set up for (0.3 mm until late on 2026-11-27).
 
 | | Standard | Strong | Faster | Fastest | Ultra |
 |---|---|---|---|---|---|
-| Layer height, mm | 0.2 | 0.3 | 0.2 | 0.2 | 0.3 |
+| Layer height, mm | 0.2 | 0.3 | 0.2 | 0.2 | 0.45 |
 | Walls (0.6 mm lines) | 3 | 4 | 3 | 2 | 2 |
 | Top / bottom layers | 4 / 3 | 4 / 4 | 4 / 3 | 4 / 3 | 3 / 2 |
 | Infill | 10% gyroid | 10% gyroid | 10% gyroid | 10% gyroid | 10% gyroid |
@@ -103,8 +103,8 @@ OrcaSlicer 2.5.2 estimates on thebrain with ProtoPasta HTPLA at 200°C. These ar
 
 | | Standard | Strong | Faster | Fastest | Ultra |
 |---|---|---|---|---|---|
-| Orca cube | 52m 43s | 41m 46s | 44m 48s | 35m 17s | 23m 56s |
-| Three thin-walled drawers on one plate (75 g) | 5h 15m | 3h 48m | 2h 04m | 1h 48m | 1h 17m |
+| Orca cube | 52m 43s | 41m 46s | 44m 48s | 35m 17s | 17m 22s |
+| Three thin-walled drawers on one plate (75 g) | 5h 15m | 3h 48m | 2h 04m | 1h 48m | 1h 01m |
 
 **First print on Fastest, 2026-11-27 (thebrain, one thin-walled drawer, HTPLA, 44m 36s).** The front wall carries raised dots (1.7 mm wide, 0.3 mm proud) and a raised number. The owner's photos show a faint copy of each dot a few millimetres further along the wall. Read from the print file:
 
@@ -132,7 +132,7 @@ OrcaSlicer 2.5.2 estimates on thebrain with ProtoPasta HTPLA at 200°C. These ar
 - At these layer heights the hotend's melt rate sets the pace, not the motion system, which is why the gentle acceleration costs little: 0.30mm at 1500 mm/s² is quicker on the plate than Fastest was at 0.2 mm and 8000 (1h 35m).
 - Estimates are the same on the "Pinky" machine profile.
 - None of the three has been printed. The ghosting tests were all at 0.2 mm, so whether the mark stays away at these heights is not known.
-- The older profiles were left in place.
+- The older profiles were left in place. Later the same day Ultra went from 0.3 to 0.45 mm layers at the owner's request, keeping its 2 walls, 3 top / 2 bottom layers and 8000 mm/s² for infill and travel (at 0.3 mm it estimated 23m 56s for the cube and 1h 17m for the plate). On the "Pinky" machine profile, which clamps acceleration to 3000, Ultra estimates 19m 12s and 1h 03m. Not printed.
 
 Until the afternoon of 2026-11-27 Faster ran 80 mm/s outer and 150 mm/s inner walls at 3000 and 5000 mm/s² (cube 34m 18s, plate 2h 18m), and Fastest and Ultra ran their walls at 5000 (outer) and 8000 (inner) mm/s² (cube 30m 56s and 20m 55s, plate 1h 35m and 1h 09m). Before 2026-11-27 Fastest was a 0.3 mm profile, Strong had 0.8 mm lines and 31% infill, and Faster's outer wall was 50 mm/s until late on 2026-11-25. Earlier estimates in the history of this file belong to those versions.
 
