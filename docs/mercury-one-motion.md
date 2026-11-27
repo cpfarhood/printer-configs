@@ -66,7 +66,7 @@ The owner's definition of the profile ladder, set on 2026-11-27. Structure and s
 
 - **Standard:** reliable and slow.
 - **Strong:** Standard's speeds with a fourth wall, thicker layers and thicker shells.
-- **Faster:** predictable quality, noticeably quicker.
+- **Faster:** predictable quality, noticeably quicker. Since the ghosting tests of 2026-11-27 (below) it is Fastest's speeds with Standard's acceleration: quick on long plain walls, slow near detail.
 - **Fastest:** gives up some surface finish for speed, and one wall.
 - **Ultra:** Fastest at 0.3 mm layers.
 
@@ -76,12 +76,13 @@ The owner's definition of the profile ladder, set on 2026-11-27. Structure and s
 | Walls (0.6 mm lines) | 3 | 4 | 3 | 2 | 2 |
 | Top / bottom layers | 4 / 3 | 4 / 4 | 4 / 3 | 4 / 3 | 3 / 2 |
 | Infill | 10% gyroid | 10% gyroid | 10% gyroid | 10% gyroid | 10% gyroid |
-| Outer wall, mm/s | 36 | 36 | 80 | 150 | 150 |
-| Inner wall / sparse infill | 72 / 108 | 72 / 108 | 150 / 150 | 190 / 190 | 190 / 190 |
-| Solid infill / gap fill | 36 / 36 | 36 / 36 | 120 / 100 | 150 / 150 | 150 / 150 |
-| Top surface | 18 | 18 | 50 | 80 | 80 |
-| Acceleration, mm/s² | 1500 | 1500 | 5000 | 8000 | 8000 |
-| Outer wall / top surface acceleration | 1500 / 1500 | 1500 / 1500 | 3000 / 2000 | 5000 / 3000 | 5000 / 3000 |
+| Outer wall, mm/s | 36 | 36 | 150 | 150 | 150 |
+| Inner wall / sparse infill | 72 / 108 | 72 / 108 | 190 / 190 | 190 / 190 | 190 / 190 |
+| Solid infill / gap fill | 36 / 36 | 36 / 36 | 150 / 150 | 150 / 150 | 150 / 150 |
+| Top surface | 18 | 18 | 80 | 80 | 80 |
+| Acceleration for infill and travel, mm/s² | 1500 | 1500 | 1500 | 8000 | 8000 |
+| Inner and outer wall acceleration | 1500 | 1500 | 1500 | 1500 | 1500 |
+| Top surface acceleration | 1500 | 1500 | 1500 | 3000 | 3000 |
 | First layer, mm/s | 30 | 30 | 40 | 40 | 40 |
 
 Things to know when reading the table:
@@ -98,12 +99,12 @@ Two purpose-built profiles sit beside the ladder. Each is Standard with only the
 
 "RatRig" and a second "Voron" without the machine suffix are leftovers converted from other printers' SuperSlicer profiles. They are tagged for these machines but do not follow the ladder, and are kept for now. Removed on 2026-11-27: "Slow", "-EM Test", "ZeroPanels" and "ZeroPanels-Hinges".
 
-OrcaSlicer 2.5.2 estimates on thebrain with ProtoPasta HTPLA at 200°C. These are slicer estimates, not prints, and nothing has been printed on the new Fastest, Ultra or Strong. `PRINT_START` adds 3 to 7 minutes.
+OrcaSlicer 2.5.2 estimates on thebrain with ProtoPasta HTPLA at 200°C. These are slicer estimates, not prints. Nothing has been printed on Strong, on Ultra, or on Faster and Fastest as they stand after the afternoon of 2026-11-27. `PRINT_START` adds 3 to 7 minutes.
 
 | | Standard | Strong | Faster | Fastest | Ultra |
 |---|---|---|---|---|---|
-| Orca cube | 52m 43s | 41m 46s | 34m 18s | 30m 56s | 20m 55s |
-| Three thin-walled drawers on one plate (75 g) | 5h 15m | 3h 48m | 2h 18m | 1h 35m | 1h 09m |
+| Orca cube | 52m 43s | 41m 46s | 44m 48s | 35m 17s | 23m 56s |
+| Three thin-walled drawers on one plate (75 g) | 5h 15m | 3h 48m | 2h 04m | 1h 48m | 1h 17m |
 
 **First print on Fastest, 2026-11-27 (thebrain, one thin-walled drawer, HTPLA, 44m 36s).** The front wall carries raised dots (1.7 mm wide, 0.3 mm proud) and a raised number. The owner's photos show a faint copy of each dot a few millimetres further along the wall. Read from the print file:
 
@@ -115,8 +116,10 @@ OrcaSlicer 2.5.2 estimates on thebrain with ProtoPasta HTPLA at 200°C. These ar
 - **Its result:** the owner judged both drawers poor, with row 6 (every acceleration 1500 mm/s²) the best on both and still showing a trace. So the mark is not specific to Y, and acceleration is the lever once the inner wall is slowed as well: with the outer wall alone at 1500 and the inner wall at 8000 it was still there. Corner speed and pressure advance smoothing did not stand out.
 - **Shapers re-measured afterwards:** they still fit (see `docs/thebrain.md`), so the mark is not left-over ringing at the measured resonances. What produces it has not been established.
 - **What slower walls would cost,** as OrcaSlicer estimates for the three-drawer plate on Fastest (1h 35m as set): inner and outer wall at 5000 mm/s² 1h 36m, at 3000 1h 40m, at 1500 1h 48m; every acceleration at 3000 1h 46m, at 1500 2h 04m. Faster is 2h 18m. Only "every acceleration 1500" has been printed.
+- **Why row 6 looked best:** worked through Klipper's speed-planning rules, at 1500 mm/s² the dotted wall beside the notch averaged 45 mm/s and never reached the 150 mm/s asked for (85 mm/s average at 8000), while the long plain walls averaged about 130 mm/s. So the test does not separate low acceleration from low speed near the dots; it shows that low acceleration gives slow motion near detail and keeps the speed elsewhere.
+- **Applied the same afternoon:** Faster became row 6 (Fastest's speeds, every acceleration 1500 mm/s², still 3 walls). Fastest and Ultra kept 8000 mm/s² for infill and travel and dropped both walls to 1500; that combination has not been printed.
 
-Before 2026-11-27 Fastest was a 0.3 mm profile, Strong had 0.8 mm lines and 31% infill, and Faster's outer wall was 50 mm/s until late on 2026-11-25. Earlier estimates in the history of this file belong to those versions.
+Until the afternoon of 2026-11-27 Faster ran 80 mm/s outer and 150 mm/s inner walls at 3000 and 5000 mm/s² (cube 34m 18s, plate 2h 18m), and Fastest and Ultra ran their walls at 5000 (outer) and 8000 (inner) mm/s² (cube 30m 56s and 20m 55s, plate 1h 35m and 1h 09m). Before 2026-11-27 Fastest was a 0.3 mm profile, Strong had 0.8 mm lines and 31% infill, and Faster's outer wall was 50 mm/s until late on 2026-11-25. Earlier estimates in the history of this file belong to those versions.
 
 Real prints so far, all the cube with its plug in ProtoPasta HTPLA on thebrain, 2026-11-25:
 
