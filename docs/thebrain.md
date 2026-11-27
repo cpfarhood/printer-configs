@@ -43,7 +43,7 @@ Confirmed 2026-11-22 by camera: a move along +X+Y turns only `stepper_x`, and th
 - Klipper fork: Kalico `v2026.11.00` since 2026-11-22, on the host and on all three MCUs. The checkout sits on the monthly release tag and Moonraker's Klipper updater is on the `stable` channel, so it follows monthly tags, not every commit. Before that it ran Danger Klipper `v0.12.0-526` (December 2024) on a repository name that no longer received updates.
 - `dockable_probe` and `z_calibration` are bundled with Kalico. `led_effect` is a separate plugin, linked into `klippy/plugins/` (Kalico refuses to start if the same module is in both `extras` and `plugins`).
 - Option and command names must be checked against Kalico's docs, not mainline Klipper's.
-- Resonance tools: on the old 32-bit install they needed the system package `libopenblas0`, which was missing from November 2024 until 2026-11-22. The 64-bit install does not need it; numpy loads in Klipper's Python environment as installed. `TEST_RESONANCES` has not been run on the new host. matplotlib is not installed, so `calibrate_shaper.py` cannot draw graphs.
+- Resonance tools: on the old 32-bit install they needed the system package `libopenblas0`, which was missing from November 2024 until 2026-11-22. The 64-bit install does not need it; numpy loads in Klipper's Python environment as installed. `TEST_RESONANCES` was first run on the new host on 2026-11-27. matplotlib is not installed, so `calibrate_shaper.py` cannot draw graphs.
 
 ## Config
 
@@ -283,6 +283,15 @@ Share of each commanded Y move that reached the toolhead at bed centre, at the c
 Two earlier attempts that evening were cancelled by the owner because the extruder was not gripping the filament. The cause was the grub screw on the extruder's drive gear, which the owner re-tightened. Spare extruder parts are on hand.
 
 Raw sweeps are on the host in `~/resonance-2026-11-24/` and `~/resonance-2026-11-24b/`.
+
+**Re-measured 2026-11-27**, three days and about ten prints after the belts went on, and the first sweeps on the rebuilt host (`accel_per_hz` 100, bed parked low, X and Y homed only):
+
+| Axis | Peaks | Best mzv fit | Saved shaper leaves |
+|---|---|---|---|
+| X | 67.7 Hz, small one at 55.4 Hz (65.4 and 56.1 on 2026-11-24) | 69.0 Hz | mzv 66.0: 0.0% |
+| Y | 43.2 Hz (45.2 on 2026-11-24) | 45.2 Hz | mzv 46.0: 0.2% |
+
+The saved values were left as they are. With them the fitting code suggests keeping acceleration under about 6200 mm/s² on Y and 12800 on X before the shaper's smoothing rounds corners. The sweeps and copies of `shaper_an.py` and `shaper_eval.py` are on the host in `~/resonance-2026-11-27/` (the rebuild had removed the scripts).
 
 ### 2026-11-22: false emergency stop during testing
 
