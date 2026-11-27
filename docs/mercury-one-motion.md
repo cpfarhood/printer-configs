@@ -59,16 +59,45 @@ From 2026-11-25 the test print for thebrain and pinky is the **Orca cube** (Orca
 
 Earlier baselines in these notes (1546 s and 1554 s of printing, 1937 mm of filament) are for a Voron Design Cube scaled to 20 mm with the old SuperSlicer "Normal" profile. They do not compare with the Orca cube.
 
-OrcaSlicer 2.5.2 estimates for the Orca cube on thebrain with the print profiles as they stood at the end of 2026-11-25. These are slicer estimates, not prints. `PRINT_START` adds 3 to 7 minutes.
+### Print profiles
 
-| Print profile | What it is | PLA (Overture), 190/65°C | PETG (Overture), 230/75°C |
-|---|---|---|---|
-| Standard @Mercury One Plus | Quality baseline: 0.2 mm layers, outer wall 36 mm/s, 1500 mm/s² throughout | 56m 34s | 56m 25s |
-| Faster @Mercury One Plus | 0.2 mm layers, outer wall 50 mm/s, 3000 mm/s² | 40m 43s | 39m 19s |
-| Fastest @Mercury One Plus | 0.3 mm layers, outer wall 80 mm/s, 5000 mm/s² (outer wall 3000) | 24m 49s | 22m 18s |
-| Strong @Mercury One Plus | 0.3 mm layers, 0.8 mm lines, 4 walls, 31% gyroid | 36m 09s | 36m 02s |
+The owner's definition of the profile ladder, set on 2026-11-27. Structure and speed are per profile; temperatures, cooling and the 10 s minimum layer time belong to the filament profile.
 
-Filament: about 5000 mm for Standard, Faster and Fastest, 6600 mm for Strong.
+- **Standard:** reliable and slow.
+- **Strong:** Standard's speeds with a fourth wall, thicker layers and thicker shells.
+- **Faster:** predictable quality, noticeably quicker.
+- **Fastest:** gives up some surface finish for speed, and one wall.
+- **Ultra:** Fastest at 0.3 mm layers.
+
+| | Standard | Strong | Faster | Fastest | Ultra |
+|---|---|---|---|---|---|
+| Layer height, mm | 0.2 | 0.3 | 0.2 | 0.2 | 0.3 |
+| Walls (0.6 mm lines) | 3 | 4 | 3 | 2 | 2 |
+| Top / bottom layers | 4 / 3 | 4 / 4 | 4 / 3 | 4 / 3 | 3 / 2 |
+| Infill | 10% gyroid | 10% gyroid | 10% gyroid | 10% gyroid | 10% gyroid |
+| Outer wall, mm/s | 36 | 36 | 80 | 150 | 150 |
+| Inner wall / sparse infill | 72 / 108 | 72 / 108 | 150 / 150 | 190 / 190 | 190 / 190 |
+| Solid infill / gap fill | 36 / 36 | 36 / 36 | 120 / 100 | 150 / 150 | 150 / 150 |
+| Top surface | 18 | 18 | 50 | 80 | 80 |
+| Acceleration, mm/s² | 1500 | 1500 | 5000 | 8000 | 8000 |
+| Outer wall / top surface acceleration | 1500 / 1500 | 1500 / 1500 | 3000 / 2000 | 5000 / 3000 | 5000 / 3000 |
+| First layer, mm/s | 30 | 30 | 40 | 40 | 40 |
+
+Things to know when reading the table:
+
+- The filament's melt limit caps the real speed. At 24 mm³/s a 0.6 mm line tops out near 200 mm/s on 0.2 mm layers and near 133 mm/s on 0.3 mm layers, so Ultra never reaches the speeds shown.
+- The slicer's "The Brain" machine limit is 8000 mm/s²; "Pinky" keeps its own lower limit and clamps these profiles to it.
+- Klipper does not clamp `SET_VELOCITY_LIMIT` to the config's `max_accel`. thebrain's config still says 5000, which is what the start sequence and manual moves use; the print file sets its own value per feature.
+- On a single small part the 10 s minimum layer time governs and the faster profiles gain little. Judge the steps on a full plate.
+
+OrcaSlicer 2.5.2 estimates on thebrain with ProtoPasta HTPLA at 200°C. These are slicer estimates, not prints, and nothing has been printed on the new Fastest, Ultra or Strong. `PRINT_START` adds 3 to 7 minutes.
+
+| | Standard | Strong | Faster | Fastest | Ultra |
+|---|---|---|---|---|---|
+| Orca cube | 52m 43s | 41m 46s | 34m 18s | 30m 56s | 20m 55s |
+| Three thin-walled drawers on one plate (75 g) | 5h 15m | 3h 48m | 2h 18m | 1h 35m | 1h 09m |
+
+Before 2026-11-27 Fastest was a 0.3 mm profile, Strong had 0.8 mm lines and 31% infill, and Faster's outer wall was 50 mm/s until late on 2026-11-25. Earlier estimates in the history of this file belong to those versions.
 
 Real prints so far, all the cube with its plug in ProtoPasta HTPLA on thebrain, 2026-11-25:
 
