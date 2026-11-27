@@ -104,6 +104,12 @@ OrcaSlicer 2.5.2 estimates on thebrain with ProtoPasta HTPLA at 200°C. These ar
 | Orca cube | 52m 43s | 41m 46s | 34m 18s | 30m 56s | 20m 55s |
 | Three thin-walled drawers on one plate (75 g) | 5h 15m | 3h 48m | 2h 18m | 1h 35m | 1h 09m |
 
+**First print on Fastest, 2026-11-27 (thebrain, one thin-walled drawer, HTPLA, 44m 36s).** The front wall carries raised dots (1.7 mm wide, 0.3 mm proud) and a raised number. The owner's photos show a faint copy of each dot a few millimetres further along the wall. Read from the print file:
+
+- That wall runs along X, so each dot is a quick Y move of 0.3 mm and back.
+- The outer wall ran at 77–91 mm/s, not 150: one small part is held back by the minimum layer time. So the mark appears at Faster's outer wall speed, and what differed from Faster was the acceleration (5000 against 3000 mm/s² on the outer wall, 8000 against 5000 on the inner wall behind it).
+- Not known yet: whether the mark is Y ringing that the shaper leaves behind or the extruder pressure catching up after the slow-down at each dot, and at what acceleration it disappears. `Drawer17_outer_accel_bands_200C_PLA.gcode` on thebrain is the same file with the outer wall acceleration stepped by dot row from the bed up: 1500, 2000, 3000, 4000, 5000, 8000 mm/s². Not printed yet.
+
 Before 2026-11-27 Fastest was a 0.3 mm profile, Strong had 0.8 mm lines and 31% infill, and Faster's outer wall was 50 mm/s until late on 2026-11-25. Earlier estimates in the history of this file belong to those versions.
 
 Real prints so far, all the cube with its plug in ProtoPasta HTPLA on thebrain, 2026-11-25:
