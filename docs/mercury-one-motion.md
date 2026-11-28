@@ -42,6 +42,7 @@ All of this runs with X and Y homed only. `SET_KINEMATIC_POSITION Z=20` after `G
 - **Y shaper:** at the configured `accel_per_hz: 50` the Y sweep reaches the dead band before it reaches Y's resonance, and the fit is meaningless (this is how pinky came to have 104.4 Hz saved). Use `ACCEL_PER_HZ=100`. pinky with tight belts needed 150.
 - **Belt balance:** the two diagonal sweeps (`AXIS=1,1` and `AXIS=1,-1`) load one belt each. They only show the belts if the shake is strong enough for the Y part to follow: `ACCEL_PER_HZ=120` worked on thebrain. At 50 both diagonals just show X's peaks.
 - **Skipped teeth:** `GET_POSITION` after homing gives each motor's step count. Re-home after fast moves and compare. One 2 mm belt tooth is 640 microsteps on both machines.
+- **One sweep at a time:** Kalico writes the 19 MB raw file in the background after `TEST_RESONANCES` returns. On thebrain's rebuilt host a Y sweep started straight after the X sweep failed to start the accelerometer and Klipper shut down with "Timer too close" (2026-11-27). Wait until the file in `/tmp` stops growing before the next sweep.
 - **Fitting:** Kalico's `calibrate_shaper.py` needs matplotlib, which is not installed. `shaper_an.py` (peaks and best fits) and `shaper_eval.py` (score named shapers against several sweeps) on each host call the same fitting code.
 - **Saving:** `SAVE_CONFIG` only writes values a calibration command has queued. Hand-picked shaper values go into the saved block of the host's `printer.cfg` by editing it, followed by a Klipper restart.
 
@@ -59,16 +60,81 @@ From 2026-11-25 the test print for thebrain and pinky is the **Orca cube** (Orca
 
 Earlier baselines in these notes (1546 s and 1554 s of printing, 1937 mm of filament) are for a Voron Design Cube scaled to 20 mm with the old SuperSlicer "Normal" profile. They do not compare with the Orca cube.
 
-OrcaSlicer 2.5.2 estimates for the Orca cube on thebrain with the print profiles as they stood at the end of 2026-11-25. These are slicer estimates, not prints. `PRINT_START` adds 3 to 7 minutes.
+### Print profiles
 
-| Print profile | What it is | PLA (Overture), 190/65°C | PETG (Overture), 230/75°C |
+The owner's definition of the profile ladder, set on 2026-11-27. Structure and speed are per profile; temperatures, cooling and the 10 s minimum layer time belong to the filament profile.
+
+- **Standard:** reliable and slow.
+- **Strong:** Standard's speeds with a fourth wall, thicker layers and thicker shells.
+- **Faster:** predictable quality, noticeably quicker. Since the ghosting tests of 2026-11-27 (below) it is Fastest's speeds with Standard's acceleration: quick on long plain walls, slow near detail.
+- **Fastest:** gives up some surface finish for speed, and one wall.
+- **Ultra:** Fastest at 0.45 mm layers, the thickest the 0.6 mm nozzle is set up for (0.3 mm until late on 2026-11-27).
+
+| | Standard | Strong | Faster | Fastest | Ultra |
+|---|---|---|---|---|---|
+| Layer height, mm | 0.2 | 0.3 | 0.2 | 0.2 | 0.45 |
+| Walls (0.6 mm lines) | 3 | 4 | 3 | 2 | 2 |
+| Top / bottom layers | 4 / 3 | 4 / 4 | 4 / 3 | 4 / 3 | 3 / 2 |
+| Infill | 10% gyroid | 10% gyroid | 10% gyroid | 10% gyroid | 10% gyroid |
+| Outer wall, mm/s | 36 | 36 | 150 | 150 | 150 |
+| Inner wall / sparse infill | 72 / 108 | 72 / 108 | 190 / 190 | 190 / 190 | 190 / 190 |
+| Solid infill / gap fill | 36 / 36 | 36 / 36 | 150 / 150 | 150 / 150 | 150 / 150 |
+| Top surface | 18 | 18 | 80 | 80 | 80 |
+| Acceleration for infill and travel, mm/s² | 1500 | 1500 | 1500 | 8000 | 8000 |
+| Inner and outer wall acceleration | 1500 | 1500 | 1500 | 1500 | 1500 |
+| Top surface acceleration | 1500 | 1500 | 1500 | 3000 | 3000 |
+| First layer, mm/s | 30 | 30 | 40 | 40 | 40 |
+
+Things to know when reading the table:
+
+- The filament's melt limit caps the real speed. With HTPLA (24 mm³/s, flow ratio 0.96) the sliced files top out at 156 mm/s on 0.3 mm layers, 122 on 0.4 and 110 on 0.45; the same sum gives about 224 mm/s on 0.2 mm layers. So on 0.3 mm layers a 190 mm/s setting runs at 156, and on thicker layers every wall and infill speed in the table is cut.
+- The slicer's "The Brain" machine limit is 8000 mm/s²; "Pinky" keeps its own lower limit and clamps these profiles to it.
+- Klipper does not clamp `SET_VELOCITY_LIMIT` to the config's `max_accel`. thebrain's config still says 5000, which is what the start sequence and manual moves use; the print file sets its own value per feature.
+- On a single small part the 10 s minimum layer time governs and the faster profiles gain little. Judge the steps on a full plate.
+
+Two purpose-built profiles sit beside the ladder. Each is Standard with only the listed settings changed:
+
+- **Vase:** spiral mode, 1 wall, no top layers, no infill, 0.3 mm layers.
+- **Voron:** the Voron printed-parts recipe: 4 walls, 5 top and 5 bottom layers, 42% infill, a 5 mm brim and a draft shield.
+
+"RatRig" and a second "Voron" without the machine suffix are leftovers converted from other printers' SuperSlicer profiles. They are tagged for these machines but do not follow the ladder, and are kept for now. Removed on 2026-11-27: "Slow", "-EM Test", "ZeroPanels" and "ZeroPanels-Hinges".
+
+OrcaSlicer 2.5.2 estimates on thebrain with ProtoPasta HTPLA at 200°C. These are slicer estimates, not prints. Nothing has been printed on Strong, on Ultra, or on Faster and Fastest as they stand after the afternoon of 2026-11-27. `PRINT_START` adds 3 to 7 minutes.
+
+| | Standard | Strong | Faster | Fastest | Ultra |
+|---|---|---|---|---|---|
+| Orca cube | 52m 43s | 41m 46s | 44m 48s | 35m 17s | 17m 22s |
+| Three thin-walled drawers on one plate (75 g) | 5h 15m | 3h 48m | 2h 04m | 1h 48m | 1h 01m |
+
+**First print on Fastest, 2026-11-27 (thebrain, one thin-walled drawer, HTPLA, 44m 36s).** The front wall carries raised dots (1.7 mm wide, 0.3 mm proud) and a raised number. The owner's photos show a faint copy of each dot a few millimetres further along the wall. Read from the print file:
+
+- That wall runs along X, so each dot is a quick Y move of 0.3 mm and back.
+- The outer wall ran at 77–91 mm/s, not 150: one small part is held back by the minimum layer time. So the mark appears at Faster's outer wall speed, and what differed from Faster was the acceleration (5000 against 3000 mm/s² on the outer wall, 8000 against 5000 on the inner wall behind it).
+- Not known yet: whether the mark is Y ringing that the shaper leaves behind or the extruder pressure catching up after the slow-down at each dot, and at what acceleration it disappears. `Drawer17_outer_accel_bands_200C_PLA.gcode` on thebrain is the same file with the outer wall acceleration stepped by dot row from the bed up: 1500, 2000, 3000, 4000, 5000, 8000 mm/s².
+- **That file, printed the same day:** the owner sees some ghosting on every row, the 1500 row included. So the outer wall's acceleration is not what sets it. At every dot the nozzle brakes to about 9 mm/s whatever the acceleration, because `square_corner_velocity` is 5; the inner wall still ran at 8000 mm/s² on every row.
+- **Third test, printed the same day (69 min):** `Drawer17_pair_XY_rows_200C_PLA.gcode` on thebrain is two drawers on Fastest, the left one as before (dots are Y moves) and the right one turned 90° with its dots facing right (dots are X moves). With two parts the outer wall runs at the full 150 mm/s. One setting changes per dot row from the bed up: (1) Fastest as is, (2) square corner velocity 10, (3) square corner velocity 15, (4) pressure advance smooth time 0.02 s, (5) pressure advance off, (6) every acceleration 1500 mm/s². If the turned drawer is clean where the other is not, the cause is in the Y axis; if both ghost alike, it is the extrusion or the inner wall, and the rows say which.
+- **Its result:** the owner judged both drawers poor, with row 6 (every acceleration 1500 mm/s²) the best on both and still showing a trace. So the mark is not specific to Y, and acceleration is the lever once the inner wall is slowed as well: with the outer wall alone at 1500 and the inner wall at 8000 it was still there. Corner speed and pressure advance smoothing did not stand out.
+- **Shapers re-measured afterwards:** they still fit (see `docs/thebrain.md`), so the mark is not left-over ringing at the measured resonances. What produces it has not been established.
+- **What slower walls would cost,** as OrcaSlicer estimates for the three-drawer plate on Fastest (1h 35m as set): inner and outer wall at 5000 mm/s² 1h 36m, at 3000 1h 40m, at 1500 1h 48m; every acceleration at 3000 1h 46m, at 1500 2h 04m. Faster is 2h 18m. Only "every acceleration 1500" has been printed.
+- **Why row 6 looked best:** worked through Klipper's speed-planning rules, at 1500 mm/s² the dotted wall beside the notch averaged 45 mm/s and never reached the 150 mm/s asked for (85 mm/s average at 8000), while the long plain walls averaged about 130 mm/s. So the test does not separate low acceleration from low speed near the dots; it shows that low acceleration gives slow motion near detail and keeps the speed elsewhere.
+- **Applied the same afternoon:** Faster became row 6 (Fastest's speeds, every acceleration 1500 mm/s², still 3 walls). Fastest and Ultra kept 8000 mm/s² for infill and travel and dropped both walls to 1500; that combination has not been printed.
+
+**Thick-layer profiles, added 2026-11-27.** After the ghosting tests the owner's direction is to stop aiming these machines at 0.2 mm work and make them good at 0.3 mm and thicker. Three profiles were added for both machines, named by layer height: **0.30mm**, **0.40mm** and **0.45mm @Mercury One Plus**. Each is Faster as it stands (3 walls, 0.6 mm lines, 10% gyroid, its speeds, every acceleration 1500 mm/s², 0.2 mm first layer) with the layer height changed and 3 top / 2 bottom layers.
+
+| | 0.30mm | 0.40mm | 0.45mm |
 |---|---|---|---|
-| Standard @Mercury One Plus | Quality baseline: 0.2 mm layers, outer wall 36 mm/s, 1500 mm/s² throughout | 56m 34s | 56m 25s |
-| Faster @Mercury One Plus | 0.2 mm layers, outer wall 50 mm/s, 3000 mm/s² | 40m 43s | 39m 19s |
-| Fastest @Mercury One Plus | 0.3 mm layers, outer wall 80 mm/s, 5000 mm/s² (outer wall 3000) | 24m 49s | 22m 18s |
-| Strong @Mercury One Plus | 0.3 mm layers, 0.8 mm lines, 4 walls, 31% gyroid | 36m 09s | 36m 02s |
+| Top / bottom thickness, mm | 0.9 / 0.6 | 1.2 / 0.8 | 1.35 / 0.9 |
+| Wall and infill speed after the HTPLA melt limit, mm/s | 150 outer, 156 inner | 122 | 110 |
+| Orca cube | 30m 29s | 24m 31s | 22m 37s |
+| Three thin-walled drawers on one plate | 1h 28m | 1h 10m | 1h 07m |
 
-Filament: about 5000 mm for Standard, Faster and Fastest, 6600 mm for Strong.
+- 0.45 mm is the most the 0.6 mm nozzle is set up for in the machine profiles. A 0.5 mm layer needs a 0.8 mm nozzle.
+- At these layer heights the hotend's melt rate sets the pace, not the motion system, which is why the gentle acceleration costs little: 0.30mm at 1500 mm/s² is quicker on the plate than Fastest was at 0.2 mm and 8000 (1h 35m).
+- Estimates are the same on the "Pinky" machine profile.
+- None of the three has been printed. The ghosting tests were all at 0.2 mm, so whether the mark stays away at these heights is not known.
+- The older profiles were left in place. Later the same day Ultra went from 0.3 to 0.45 mm layers at the owner's request, keeping its 2 walls, 3 top / 2 bottom layers and 8000 mm/s² for infill and travel (at 0.3 mm it estimated 23m 56s for the cube and 1h 17m for the plate). On the "Pinky" machine profile, which clamps acceleration to 3000, Ultra estimates 19m 12s and 1h 03m. Not printed.
+
+Until the afternoon of 2026-11-27 Faster ran 80 mm/s outer and 150 mm/s inner walls at 3000 and 5000 mm/s² (cube 34m 18s, plate 2h 18m), and Fastest and Ultra ran their walls at 5000 (outer) and 8000 (inner) mm/s² (cube 30m 56s and 20m 55s, plate 1h 35m and 1h 09m). Before 2026-11-27 Fastest was a 0.3 mm profile, Strong had 0.8 mm lines and 31% infill, and Faster's outer wall was 50 mm/s until late on 2026-11-25. Earlier estimates in the history of this file belong to those versions.
 
 Real prints so far, all the cube with its plug in ProtoPasta HTPLA on thebrain, 2026-11-25:
 

@@ -43,7 +43,7 @@ Confirmed 2026-11-22 by camera: a move along +X+Y turns only `stepper_x`, and th
 - Klipper fork: Kalico `v2026.11.00` since 2026-11-22, on the host and on all three MCUs. The checkout sits on the monthly release tag and Moonraker's Klipper updater is on the `stable` channel, so it follows monthly tags, not every commit. Before that it ran Danger Klipper `v0.12.0-526` (December 2024) on a repository name that no longer received updates.
 - `dockable_probe` and `z_calibration` are bundled with Kalico. `led_effect` is a separate plugin, linked into `klippy/plugins/` (Kalico refuses to start if the same module is in both `extras` and `plugins`).
 - Option and command names must be checked against Kalico's docs, not mainline Klipper's.
-- Resonance tools: on the old 32-bit install they needed the system package `libopenblas0`, which was missing from November 2024 until 2026-11-22. The 64-bit install does not need it; numpy loads in Klipper's Python environment as installed. `TEST_RESONANCES` has not been run on the new host. matplotlib is not installed, so `calibrate_shaper.py` cannot draw graphs.
+- Resonance tools: on the old 32-bit install they needed the system package `libopenblas0`, which was missing from November 2024 until 2026-11-22. The 64-bit install does not need it; numpy loads in Klipper's Python environment as installed. `TEST_RESONANCES` was first run on the new host on 2026-11-27. matplotlib is not installed, so `calibrate_shaper.py` cannot draw graphs.
 
 ## Config
 
@@ -284,6 +284,15 @@ Two earlier attempts that evening were cancelled by the owner because the extrud
 
 Raw sweeps are on the host in `~/resonance-2026-11-24/` and `~/resonance-2026-11-24b/`.
 
+**Re-measured 2026-11-27**, three days and about ten prints after the belts went on, and the first sweeps on the rebuilt host (`accel_per_hz` 100, bed parked low, X and Y homed only):
+
+| Axis | Peaks | Best mzv fit | Saved shaper leaves |
+|---|---|---|---|
+| X | 67.7 Hz, small one at 55.4 Hz (65.4 and 56.1 on 2026-11-24) | 69.0 Hz | mzv 66.0: 0.0% |
+| Y | 43.2 Hz (45.2 on 2026-11-24) | 45.2 Hz | mzv 46.0: 0.2% |
+
+The saved values were left as they are. With them the fitting code suggests keeping acceleration under about 6200 mm/s² on Y and 12800 on X before the shaper's smoothing rounds corners. The sweeps and copies of `shaper_an.py` and `shaper_eval.py` are on the host in `~/resonance-2026-11-27/` (the rebuild had removed the scripts).
+
 ### 2026-11-22: false emergency stop during testing
 
 A test watchdog read Kalico's momentary all-zero live position as the bed rising and sent an emergency stop. Nothing was moving toward the nozzle. Klipper shut down at the start of a probe command; a firmware restart and re-home recovered it. The watchdog rule was corrected the same evening.
@@ -439,7 +448,7 @@ Ordered roughly by value. None of these are done.
 - A pulley or idler ran off-centre on the old belts (tension pulsed once per motor turn). Not re-checked since the new belts.
 - The extruder's drive-gear grub screw worked loose on 2026-11-24. Check it if extrusion thins out.
 - Calibrate pressure advance.
-- The machine limits are 300 mm/s and 5000 mm/s², and the fastest slicer profiles now use both. A no-filament ladder on 2026-11-27 kept step up to 400 mm/s and 10000 mm/s² (see "Speed and acceleration ladder"). Not raised: recent parts were limited by cooling, not by motion (corners curling up, parts that would not mate with the same part from another printer), and no print has been judged above 5000 mm/s².
+- The config limits are 300 mm/s and 5000 mm/s². A no-filament ladder on 2026-11-27 kept step up to 400 mm/s and 10000 mm/s² (see "Speed and acceleration ladder"). From that day the Fastest and Ultra print profiles ask for 8000 mm/s² on infill and travel (and until that afternoon on inner walls, with 5000 on outer walls; both walls are now 1500 after the ghosting tests in `docs/mercury-one-motion.md`); the config value was left alone because Klipper does not clamp the slicer's `SET_VELOCITY_LIMIT` to it, and the start sequence is better off at 5000. No print has been judged above 5000 mm/s² yet. The Y shaper (mzv 46 Hz) is expected to start rounding corners visibly at about 8000. The profiles are described in [mercury-one-motion.md](mercury-one-motion.md), including the 0.30, 0.40 and 0.45 mm profiles added that afternoon, which run every acceleration at 1500.
 - **Parts come out soft.** Reported 2026-11-27 for PLA on the 0.6 mm nozzle: corners curling upward and what looks like over-extrusion. What the sliced files showed: minimum layer time was 0 in the two filament profiles in use, the bed was 65°C on every layer, and there is one part-cooling fan. Minimum layer time was set back to 10 s and the HTPLA bed to 60°C in the slicer that day; no print has confirmed either. The same HTPLA reached about 27 mm³/s at 200°C in the owner's flow test, so the 24 mm³/s limit has margin. Elephant foot compensation is still 0.
 - Neopixel update errors. Try a newer `led_effect` and a lower frame rate than 24 fps.
 
