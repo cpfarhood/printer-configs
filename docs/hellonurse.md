@@ -35,14 +35,15 @@ Where each cable goes on an SKR Pico V1.0 for the config as it stands. Connector
 | Hotend (heatbreak) fan | FAN1 | `gpio17` |
 | Part cooling fan | FAN2 | `gpio18` |
 | Electronics fan | FAN3 | `gpio20` |
-| BLTouch, 3-wire plug (5 V, ground, control) | SERVOS | `gpio29` |
-| BLTouch, 2-wire plug (ground, signal) | Z-STOP, on its signal and ground pins | `gpio25` |
+| BLTouch, 3-wire plug (control, 5 V, ground) | The three SERVOS pins of the 5-pin PROBE/SERVOS connector | `gpio29` |
+| BLTouch, 2-wire plug (signal, ground) | Z-STOP, on its signal and ground pins, 5V pin left empty | `gpio25` |
 | LED strip, 14 LEDs | RGB (GND, signal, 5V) | `gpio24` |
 | Filament switch | Raspberry Pi header, GPIO6 (pin 31) | `rpi:gpio6` |
 | Filament unload button | Raspberry Pi header, GPIO5 (pin 29) | `rpi:gpio5` |
 
 - **X and Y home without switches.** The config reads the drivers' stall signal on `gpio4` and `gpio3`, which are the X-STOP and Y-STOP pins. That needs the jumpers fitted on X-DIAG and Y-DIAG and nothing plugged into X-STOP or Y-STOP. No jumper on Z-DIAG: Z-STOP carries the BLTouch signal.
-- **The BLTouch signal is on Z-STOP, not on the board's PROBE connector** (`gpio22`). Either works, but the config has to match the plug.
+- **The BLTouch signal is on Z-STOP, not on the board's PROBE pins** (`gpio22`). Either works, but the config has to match the plug. On 2026-11-28 the owner found a 3-pin plug running to the BLTouch and recalled it being in E0-STOP (`gpio16`), which the config does not use and which sits directly beside Z-STOP on the board; which wires that plug carries has not been checked.
+- **Pin order differs between the two places a BLTouch plug can go.** PROBE/SERVOS reads PROBE, GND, then IO29, 5V, GND. Z-STOP and E0-STOP read signal, GND, 5V. A 3-wire plug made for SERVOS has 5 V and ground swapped if it is pushed onto an endstop connector, so match red to 5V and brown or black to GND by the printed labels before powering up.
 - **Fans run at the supply voltage.** FAN1–3 switch 12/24V, so the fans must match the power supply. Which supply this machine has is not recorded.
 - **The filament switch and unload button are wired to the Pi, not the board.** They need the Pi's host MCU service installed (`[mcu rpi]` in `printer-common.cfg`), and their own power and ground from the Pi header. Which sensor it is and what voltage it wants is not recorded; the config's comments match the Orbiter filament sensor's sample config.
 
